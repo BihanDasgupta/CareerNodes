@@ -1,0 +1,6 @@
+streamlit
+requests
+python-dotenv
+networkx
+pyvis
+PyPDF2
