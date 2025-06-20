@@ -71,7 +71,7 @@ def calculate_score(user, internship):
     return score
 
 # --- Streamlit App ---
-st.title("CareerNodes: API-Powered Internship Matcher")
+st.title("CareerNodes: Graphical Internship Matcher")
 
 # User Inputs
 gpa = st.number_input("Enter your GPA", min_value=0.0, max_value=4.0, step=0.01)
