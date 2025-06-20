@@ -1,0 +1,7 @@
+# If already accidentally committed, remove with:
+# git rm -r --cached .env     
+# git commit -m "Remove .env"
+.env
+graph.html
+__pycache__/
+*.pyc

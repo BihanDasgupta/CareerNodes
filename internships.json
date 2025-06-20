@@ -1,0 +1,45 @@
+[
+    {
+      "company": "Google",
+      "title": "Software Engineering Intern",
+      "skills": ["python", "algorithms", "data structures"],
+      "gpa": 3.5,
+      "type": "Remote",
+      "location": "Mountain View, CA",
+      "industry": "Tech",
+      "org_type": "Large Company (Enterprise)",
+      "schedule": "Full-Time",
+      "salary_min": 8000,
+      "salary_max": 10000,
+      "description": "Work on scalable backend systems for billions of users."
+    },
+    {
+      "company": "HealthAI Startup",
+      "title": "Machine Learning Intern",
+      "skills": ["machine learning", "deep learning", "python"],
+      "gpa": 3.7,
+      "type": "Hybrid",
+      "location": "Boston, MA",
+      "industry": "Healthcare",
+      "org_type": "Startup",
+      "schedule": "Part-Time",
+      "salary_min": 4000,
+      "salary_max": 6000,
+      "description": "Develop AI models for healthcare diagnostics in a startup environment."
+    },
+    {
+      "company": "FinTech Inc.",
+      "title": "Quantitative Analyst Intern",
+      "skills": ["python", "statistics", "finance"],
+      "gpa": 3.6,
+      "type": "On-Site",
+      "location": "New York, NY",
+      "industry": "Finance",
+      "org_type": "Small Business",
+      "schedule": "Full-Time",
+      "salary_min": 7000,
+      "salary_max": 9000,
+      "description": "Support quantitative models for risk management and financial analysis."
+    }
+  ]
+  
