@@ -75,8 +75,16 @@ def create_user_profile_text(user_inputs, resume_text):
     return "\n".join(profile_parts)
 
 
+st.write(f"Embedding user profile text length: {len(shortened_profile_text)}")
+
+
 def embed_text(texts):
-    response = co.embed(texts=texts, model="embed-english-v3.0")
+    # Filter out any empty strings before sending to Cohere
+    clean_texts = [t for t in texts if t.strip() != ""]
+    if not clean_texts:
+        st.error("No valid text to embed.")
+        return None
+    response = co.embed(texts=clean_texts, model="embed-english-v3.0")
     return np.array(response.embeddings)
 
 
