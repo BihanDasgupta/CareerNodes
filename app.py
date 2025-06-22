@@ -74,9 +74,11 @@ def create_user_profile_text(user_inputs, resume_text):
     ]
     return "\n".join(profile_parts)
 
+
 def embed_text(text):
-    response = co.embed([text], model="embed-english-v3.0")
+    response = co.embed(texts=[text], model="embed-english-v3.0")
     return np.array(response.embeddings)
+
 
 def calculate_similarity(user_embedding, job_embedding):
     return cosine_similarity(user_embedding, job_embedding)[0][0]
