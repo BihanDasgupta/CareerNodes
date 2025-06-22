@@ -73,14 +73,14 @@ def create_user_profile_text(user_inputs, resume_text):
     ]
     return "\n".join(profile_parts)
 
-def embed_text(texts):
-    clean_texts = [t for t in texts if t.strip() != ""]
-    if not clean_texts:
+
+def embed_text(text):
+    if not text or not text.strip():
         st.error("No valid text to embed.")
         return None
-    response = co.embed(texts=clean_texts, model="embed-english-v3.0")
-    embeddings = np.array(response.embeddings)
-    return embeddings
+    response = co.embed(texts=[text], model="embed-english-v3.0")
+    return np.array(response.embeddings)
+
 
 def calculate_similarity(user_embedding, job_embedding):
     return cosine_similarity(user_embedding, job_embedding)[0][0]
@@ -152,12 +152,12 @@ if st.button("Find Matches"):
     shortened_profile_text = user_profile_text[:2000]
     st.write(f"Embedding user profile text length: {len(shortened_profile_text)}")
 
-    user_embedding = embed_text([shortened_profile_text])
+    user_embedding = embed_text(shortened_profile_text)
 
     results = []
     for internship in internships:
         job_text = f"{internship['title']} at {internship['company']}: {internship['description']}"
-        job_embedding = embed_text([job_text])
+        job_embedding = embed_text(job_text)
         similarity = calculate_similarity(user_embedding, job_embedding)
         results.append((similarity, internship))
 
