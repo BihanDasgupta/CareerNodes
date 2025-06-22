@@ -75,8 +75,8 @@ def create_user_profile_text(user_inputs, resume_text):
     return "\n".join(profile_parts)
 
 
-def embed_text(text):
-    response = co.embed(texts=[text], model="embed-english-v3.0")
+def embed_text(texts):
+    response = co.embed(texts=texts, model="embed-english-v3.0")
     return np.array(response.embeddings)
 
 
