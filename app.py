@@ -147,7 +147,7 @@ if st.button("Find Matches"):
     user_profile_text = create_user_profile_text(user_inputs, resume_text)
     st.write("Generating embeddings and matching...")
 
-    user_embedding = embed_text(user_profile_text)
+    user_embedding = embed_text([user_profile_text])
 
     results = []
     for internship in internships:
