@@ -60,6 +60,10 @@ def extract_text_from_resume(file):
                 text += extracted + "\n"
     return text
 
+def sanitize_text(text, max_chars=1500):
+    text = re.sub(r'\s+', ' ', text)
+    return text[:max_chars]
+
 def create_user_profile_text(user_inputs, resume_text):
     profile_parts = [
         f"GPA: {user_inputs['gpa']}",
@@ -73,14 +77,16 @@ def create_user_profile_text(user_inputs, resume_text):
     ]
     return "\n".join(profile_parts)
 
-
 def embed_text(text):
     if not text or not text.strip():
         st.error("No valid text to embed.")
         return None
-    response = co.embed(texts=[text], model="embed-english-v3.0")
-    return np.array(response.embeddings)
-
+    try:
+        response = co.embed(texts=[text], model="embed-english-v3.0")
+        return np.array(response.embeddings)
+    except cohere.CohereAPIError as e:
+        st.error(f"Cohere embedding failed: {str(e)}")
+        return None
 
 def calculate_similarity(user_embedding, job_embedding):
     return cosine_similarity(user_embedding, job_embedding)[0][0]
@@ -147,43 +153,45 @@ if st.button("Find Matches"):
     }
 
     user_profile_text = create_user_profile_text(user_inputs, resume_text)
+    sanitized_profile_text = sanitize_text(user_profile_text, max_chars=1500)
     st.write("Generating embeddings and matching...")
+    user_embedding = embed_text(sanitized_profile_text)
 
-    shortened_profile_text = user_profile_text[:2000]
-    st.write(f"Embedding user profile text length: {len(shortened_profile_text)}")
+    if user_embedding is None:
+        st.error("Failed to generate user embedding.")
+    else:
+        results = []
+        for internship in internships:
+            job_text_raw = f"{internship['title']} at {internship['company']}: {internship['description']}"
+            job_text = sanitize_text(job_text_raw, max_chars=1000)
+            job_embedding = embed_text(job_text)
+            if job_embedding is not None:
+                similarity = calculate_similarity(user_embedding, job_embedding)
+                results.append((similarity, internship))
 
-    user_embedding = embed_text(shortened_profile_text)
+        results.sort(reverse=True, key=lambda x: x[0])
 
-    results = []
-    for internship in internships:
-        job_text = f"{internship['title']} at {internship['company']}: {internship['description']}"
-        job_embedding = embed_text(job_text)
-        similarity = calculate_similarity(user_embedding, job_embedding)
-        results.append((similarity, internship))
+        st.subheader("Top AI-Powered Matches:")
+        for similarity, internship in results:
+            st.markdown(f"**{internship['company']} - {internship['title']}**")
+            st.write(f"Similarity Score: {similarity:.3f}")
+            st.write(f"Location: {internship['location']}")
+            st.write(f"Salary: ${internship['salary_min']} - ${internship['salary_max']}")
+            st.write(f"Description: {internship['description'][:300]}...")
+            st.write("---")
 
-    results.sort(reverse=True, key=lambda x: x[0])
+        # Graph visualization
+        G = nx.Graph()
+        G.add_node("You")
+        for similarity, internship in results[:5]:
+            node_label = f"{internship['company']}\n{internship['title']}"
+            G.add_node(node_label)
+            G.add_edge("You", node_label, weight=similarity)
 
-    st.subheader("Top AI-Powered Matches:")
-    for similarity, internship in results:
-        st.markdown(f"**{internship['company']} - {internship['title']}**")
-        st.write(f"Similarity Score: {similarity:.3f}")
-        st.write(f"Location: {internship['location']}")
-        st.write(f"Salary: ${internship['salary_min']} - ${internship['salary_max']}")
-        st.write(f"Description: {internship['description'][:300]}...")
-        st.write("---")
+        net = Network(height="500px", width="100%", bgcolor="#222222", font_color="white")
+        net.from_nx(G)
+        net.save_graph("graph.html")
 
-    # Graph visualization
-    G = nx.Graph()
-    G.add_node("You")
-    for similarity, internship in results[:5]:
-        node_label = f"{internship['company']}\n{internship['title']}"
-        G.add_node(node_label)
-        G.add_edge("You", node_label, weight=similarity)
-
-    net = Network(height="500px", width="100%", bgcolor="#222222", font_color="white")
-    net.from_nx(G)
-    net.save_graph("graph.html")
-
-    with open("graph.html", "r", encoding='utf-8') as HtmlFile:
-        source_code = HtmlFile.read()
-        components.html(source_code, height=550, width=800)
+        with open("graph.html", "r", encoding='utf-8') as HtmlFile:
+            source_code = HtmlFile.read()
+            components.html(source_code, height=550, width=800)
