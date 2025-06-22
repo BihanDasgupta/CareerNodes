@@ -75,9 +75,6 @@ def create_user_profile_text(user_inputs, resume_text):
     return "\n".join(profile_parts)
 
 
-st.write(f"Embedding user profile text length: {len(shortened_profile_text)}")
-
-
 def embed_text(texts):
     # Filter out any empty strings before sending to Cohere
     clean_texts = [t for t in texts if t.strip() != ""]
@@ -155,7 +152,11 @@ if st.button("Find Matches"):
     user_profile_text = create_user_profile_text(user_inputs, resume_text)
     st.write("Generating embeddings and matching...")
 
-    user_embedding = embed_text([user_profile_text])
+    shortened_profile_text = user_profile_text[:2000]
+
+    st.write(f"Embedding user profile text length: {len(shortened_profile_text)}")
+
+    user_embedding = embed_text([shortened_profile_text])
 
     results = []
     for internship in internships:
