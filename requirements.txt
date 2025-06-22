@@ -4,3 +4,5 @@ python-dotenv
 networkx
 pyvis
 PyPDF2
+cohere
+scikit-learn

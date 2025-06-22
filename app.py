@@ -7,15 +7,15 @@ from pyvis.network import Network
 import streamlit.components.v1 as components
 from dotenv import load_dotenv
 import PyPDF2
+import cohere
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
 
 # --- Install these packages if not installed ---
-# pip install python-dotenv
-# pip install streamlit requests pyvis networkx PyPDF2
+# pip install python-dotenv streamlit requests pyvis networkx PyPDF2 cohere sklearn
 
-# --- Run with: streamlit run app.py ---
-
-# --- API CONFIG ---
-load_dotenv()  # Load local .env if exists
+# --- Load environment variables ---
+load_dotenv()
 
 if "adzuna" in st.secrets:
     ADZUNA_APP_ID = st.secrets["adzuna"]["app_id"]
@@ -24,7 +24,13 @@ else:
     ADZUNA_APP_ID = os.getenv("ADZUNA_APP_ID")
     ADZUNA_APP_KEY = os.getenv("ADZUNA_APP_KEY")
 
+if "cohere" in st.secrets:
+    COHERE_API_KEY = st.secrets["cohere"]["api_key"]
+else:
+    COHERE_API_KEY = os.getenv("COHERE_API_KEY")
+
 ADZUNA_COUNTRY = "us"
+co = cohere.Client(COHERE_API_KEY)
 
 # --- Functions ---
 def fetch_internships(query, location, results_limit=20):
@@ -45,33 +51,38 @@ def fetch_internships(query, location, results_limit=20):
         st.error("Failed to fetch data from Adzuna API.")
         return []
 
-def extract_skills(description):
-    keywords = re.findall(r'\b[A-Za-z]{3,}\b', description.lower())
-    return list(set(keywords))
+def extract_text_from_resume(file):
+    text = ""
+    if file.name.endswith(".txt"):
+        text = file.read().decode("utf-8")
+    elif file.name.endswith(".pdf"):
+        pdf_reader = PyPDF2.PdfReader(file)
+        for page in pdf_reader.pages:
+            text += page.extract_text()
+    return text
 
-def calculate_score(user, internship):
-    score = 0
-    skill_matches = set(user['skills']) & set(internship['skills'])
-    score += len(skill_matches) * 3
+def create_user_profile_text(user_inputs, resume_text):
+    profile_parts = [
+        f"GPA: {user_inputs['gpa']}",
+        f"Skills: {', '.join(user_inputs['skills'])}",
+        f"Preferred Location: {user_inputs['location']}",
+        f"Preferred Industry: {', '.join(user_inputs['industry'])}",
+        f"Preferred Org Type: {', '.join(user_inputs['org_type'])}",
+        f"Preferred Schedule: {user_inputs['schedule']}",
+        f"Desired Salary: ${user_inputs['salary_min']} - ${user_inputs['salary_max']}",
+        f"Resume: {resume_text}"
+    ]
+    return "\n".join(profile_parts)
 
-    if user['gpa'] >= internship['gpa']:
-        score += 5
-    if user['type'] == internship['type']:
-        score += 3
-    if user['schedule'] == internship['schedule']:
-        score += 3
-    if internship['industry'] in user['industry']:
-        score += 4
-    if internship['org_type'] in user['org_type']:
-        score += 4
-    if internship['salary_min'] >= user['salary_min'] and internship['salary_max'] <= user['salary_max']:
-        score += 3
-    if user['location'].lower() in internship['location'].lower():
-        score += 3
-    return score
+def embed_text(text):
+    response = co.embed([text], model="embed-english-v3.0")
+    return np.array(response.embeddings)
+
+def calculate_similarity(user_embedding, job_embedding):
+    return cosine_similarity(user_embedding, job_embedding)[0][0]
 
 # --- Streamlit App ---
-st.title("CareerNodes: Graphical Internship Matcher")
+st.title("CareerNodes: AI-Powered Internship Matcher (Phase 2)")
 
 # User Inputs
 gpa = st.number_input("Enter your GPA", min_value=0.0, max_value=4.0, step=0.01)
@@ -102,45 +113,27 @@ salary_max = st.number_input("Maximum desired salary ($)", min_value=0)
 resume_file = st.file_uploader("Upload your resume (PDF or TXT)", type=["pdf", "txt"])
 resume_text = ""
 if resume_file:
-    if resume_file.name.endswith(".txt"):
-        resume_text = resume_file.read().decode("utf-8")
-    elif resume_file.name.endswith(".pdf"):
-        pdf_reader = PyPDF2.PdfReader(resume_file)
-        for page in pdf_reader.pages:
-            resume_text += page.extract_text()
+    resume_text = extract_text_from_resume(resume_file)
     st.write("Resume successfully uploaded!")
-    st.write(resume_text[:500])
-
-# Extract skills from resume text
-resume_skills = re.findall(r'\b[a-zA-Z]{3,}\b', resume_text.lower())
-resume_skills = list(set(resume_skills))
-skills += resume_skills
+    st.write(resume_text[:1000])  # show first 1000 chars for preview
 
 if st.button("Find Matches"):
     internships_raw = fetch_internships("internship", location)
     internships = []
     for job in internships_raw:
         description = job.get("description", "")
-        extracted_skills = extract_skills(description)
         internships.append({
             "company": job.get("company", {}).get("display_name", "Unknown"),
             "title": job.get("title", "Unknown Title"),
-            "skills": extracted_skills,
-            "gpa": 0.0,
-            "type": type_preference,
+            "description": description,
             "location": job.get("location", {}).get("display_name", "Unknown Location"),
-            "industry": "Unknown",
-            "org_type": "Unknown",
-            "schedule": schedule_preference,
             "salary_min": job.get("salary_min") or 0,
             "salary_max": job.get("salary_max") or 0,
-            "description": description
         })
 
-    user = {
+    user_inputs = {
         "gpa": gpa,
         "skills": skills,
-        "type": type_preference,
         "location": location,
         "industry": industry_preference,
         "org_type": org_type_preference,
@@ -149,29 +142,36 @@ if st.button("Find Matches"):
         "salary_max": salary_max
     }
 
+    user_profile_text = create_user_profile_text(user_inputs, resume_text)
+    st.write("Generating embeddings and matching...")
+
+    user_embedding = embed_text(user_profile_text)
+
     results = []
     for internship in internships:
-        score = calculate_score(user, internship)
-        results.append((score, internship))
+        job_text = f"{internship['title']} at {internship['company']}: {internship['description']}"
+        job_embedding = embed_text(job_text)
+        similarity = calculate_similarity(user_embedding, job_embedding)
+        results.append((similarity, internship))
 
     results.sort(reverse=True, key=lambda x: x[0])
 
-    st.subheader("Top Matches:")
-    for score, internship in results:
+    st.subheader("Top AI-Powered Matches:")
+    for similarity, internship in results:
         st.markdown(f"**{internship['company']} - {internship['title']}**")
-        st.write(f"Score: {score}")
+        st.write(f"Similarity Score: {similarity:.3f}")
         st.write(f"Location: {internship['location']}")
         st.write(f"Salary: ${internship['salary_min']} - ${internship['salary_max']}")
         st.write(f"Description: {internship['description'][:300]}...")
         st.write("---")
 
-    # Graph visualization
+    # Graph visualization (top 5 matches)
     G = nx.Graph()
     G.add_node("You")
-    for score, internship in results[:5]:
+    for similarity, internship in results[:5]:
         node_label = f"{internship['company']}\n{internship['title']}"
         G.add_node(node_label)
-        G.add_edge("You", node_label, weight=score)
+        G.add_edge("You", node_label, weight=similarity)
 
     net = Network(height="500px", width="100%", bgcolor="#222222", font_color="white")
     net.from_nx(G)
