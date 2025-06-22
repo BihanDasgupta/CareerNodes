@@ -11,9 +11,6 @@ import cohere
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
-# --- Install these packages if not installed ---
-# pip install python-dotenv streamlit requests pyvis networkx PyPDF2 cohere sklearn
-
 # --- Load environment variables ---
 load_dotenv()
 
@@ -58,7 +55,9 @@ def extract_text_from_resume(file):
     elif file.name.endswith(".pdf"):
         pdf_reader = PyPDF2.PdfReader(file)
         for page in pdf_reader.pages:
-            text += page.extract_text()
+            extracted = page.extract_text()
+            if extracted:
+                text += extracted + "\n"
     return text
 
 def create_user_profile_text(user_inputs, resume_text):
@@ -74,16 +73,14 @@ def create_user_profile_text(user_inputs, resume_text):
     ]
     return "\n".join(profile_parts)
 
-
 def embed_text(texts):
-    # Filter out any empty strings before sending to Cohere
     clean_texts = [t for t in texts if t.strip() != ""]
     if not clean_texts:
         st.error("No valid text to embed.")
         return None
     response = co.embed(texts=clean_texts, model="embed-english-v3.0")
-    return np.array(response.embeddings)
-
+    embeddings = np.array(response.embeddings)
+    return embeddings
 
 def calculate_similarity(user_embedding, job_embedding):
     return cosine_similarity(user_embedding, job_embedding)[0][0]
@@ -122,7 +119,7 @@ resume_text = ""
 if resume_file:
     resume_text = extract_text_from_resume(resume_file)
     st.write("Resume successfully uploaded!")
-    st.write(resume_text[:1000])  # show first 1000 chars for preview
+    st.write(resume_text[:1000])
 
 if st.button("Find Matches"):
     internships_raw = fetch_internships("internship", location)
@@ -153,7 +150,6 @@ if st.button("Find Matches"):
     st.write("Generating embeddings and matching...")
 
     shortened_profile_text = user_profile_text[:2000]
-
     st.write(f"Embedding user profile text length: {len(shortened_profile_text)}")
 
     user_embedding = embed_text([shortened_profile_text])
@@ -161,7 +157,7 @@ if st.button("Find Matches"):
     results = []
     for internship in internships:
         job_text = f"{internship['title']} at {internship['company']}: {internship['description']}"
-        job_embedding = embed_text(job_text)
+        job_embedding = embed_text([job_text])
         similarity = calculate_similarity(user_embedding, job_embedding)
         results.append((similarity, internship))
 
@@ -176,7 +172,7 @@ if st.button("Find Matches"):
         st.write(f"Description: {internship['description'][:300]}...")
         st.write("---")
 
-    # Graph visualization (top 5 matches)
+    # Graph visualization
     G = nx.Graph()
     G.add_node("You")
     for similarity, internship in results[:5]:
@@ -189,5 +185,5 @@ if st.button("Find Matches"):
     net.save_graph("graph.html")
 
     with open("graph.html", "r", encoding='utf-8') as HtmlFile:
-        source_code = HtmlFile.read() 
+        source_code = HtmlFile.read()
         components.html(source_code, height=550, width=800)
