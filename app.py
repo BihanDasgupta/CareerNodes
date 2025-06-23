@@ -167,6 +167,17 @@ resume_file = st.file_uploader("Upload Resume (PDF or TXT)", type=["pdf", "txt"]
 resume_text = extract_text_from_resume(resume_file) if resume_file else ""
 if resume_file: st.write("Resume uploaded!")
 
+# Resume excerpt limiting logic
+resume_excerpt = ""
+if resume_text:
+    experience_index = resume_text.lower().find("experience")
+    if experience_index != -1:
+        resume_excerpt = resume_text[experience_index:experience_index + 3000]
+    else:
+        resume_excerpt = resume_text[:3000]
+else:
+    resume_excerpt = "No resume provided"
+
 if st.button("Find Matches"):
     internships_raw = fetch_internships("internship", location)
     internships = []
@@ -187,7 +198,7 @@ if st.button("Find Matches"):
         "salary_min": salary_min, "salary_max": salary_max
     }
 
-    profile_text = create_user_profile_text(user_inputs, resume_text)
+    profile_text = create_user_profile_text(user_inputs, resume_excerpt)
     st.write("♡ AI Matching in Progress...")
 
     results = []
