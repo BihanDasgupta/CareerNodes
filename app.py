@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 import PyPDF2
 import cohere
 import numpy as np
-import time
 
 # Load environment variables
 load_dotenv()
@@ -29,7 +28,6 @@ else:
 ADZUNA_COUNTRY = "us"
 co = cohere.Client(COHERE_API_KEY)
 
-
 def fetch_internships(query, location, results_limit=50):
     url = f"https://api.adzuna.com/v1/api/jobs/{ADZUNA_COUNTRY}/search/1"
     params = {
@@ -48,7 +46,6 @@ def fetch_internships(query, location, results_limit=50):
         st.error("Failed to fetch data from Adzuna API.")
         return []
 
-
 def extract_text_from_resume(file):
     text = ""
     if file.name.endswith(".txt"):
@@ -60,7 +57,6 @@ def extract_text_from_resume(file):
             if extracted:
                 text += extracted + "\n"
     return text
-
 
 def create_user_profile_text(user_inputs, resume_text):
     profile_parts = [
@@ -76,24 +72,6 @@ def create_user_profile_text(user_inputs, resume_text):
         f"Resume: {resume_text if resume_text else 'No resume provided'}"
     ]
     return "\n".join(profile_parts)
-
-
-def fast_filter(internships, user_inputs):
-    # Quick rule-based filtering BEFORE Cohere
-    filtered = []
-    for job in internships:
-        loc = job.get("location", {}).get("display_name", "").lower()
-        if user_inputs['location'].lower() not in loc and "remote" not in loc:
-            continue
-
-        desc = job.get("description", "").lower()
-        skill_match = any(skill.lower() in desc for skill in user_inputs['skills'])
-        industry_match = any(ind.lower() in desc for ind in user_inputs['industry'])
-
-        if skill_match or industry_match:
-            filtered.append(job)
-    return filtered
-
 
 def analyze_and_score(user_profile_text, job_text):
     prompt = f"""
@@ -115,7 +93,7 @@ FIRST, extract from the JOB LISTING (if available):
 SECOND, compare these extracted attributes against the USER PROFILE. Return a matching score between 0 and 1. 
 In your scoring, truly consider all of the factors that the user provides in the USER PROFILE and how good of a fit you think the internship would be based on what is in the JOB LISTING. Perform a thorough analysis in your scoring with the purpose of providing the user with the best possible matches for an internship.
 If the USER PROFILE contains anything that does not match a requirement in the JOB LISTING (i.e. user does not have required education level), give the JOB LISTING a score of 0. If the JOB LISTING contains anything that does not meet a requirement in the USER PROFILE (i.e. the job is remote but user is looking for onsite), give it a lower score, not necessarily 0 but not high either.
-The results must be as catered to the user's needs as possible all the while meeting the internship's requirements. 
+The results must be as catered to the user's needs as possible all the while meeting the internship's requirements.
 
 USER PROFILE:
 {user_profile_text}
@@ -147,29 +125,71 @@ EXTRACTED_TIMELINE: <value or 'No start/end date specified.'>
         score_line = [l for l in lines if l.startswith("MATCH_SCORE:")][0]
         score = float(score_line.split(":")[1].strip())
         score = max(0.0, min(1.0, score))
-        return score
+
+        extracted = {}
+        for field in ["EXTRACTED_GPA", "EXTRACTED_EDUCATION", "EXTRACTED_SKILLS",
+                      "EXTRACTED_WORK_TYPE", "EXTRACTED_SCHEDULE",
+                      "EXTRACTED_INDUSTRY", "EXTRACTED_ORGANIZATION", "EXTRACTED_PRIOR_EXPERIENCES",
+                      "EXTRACTED_LOCATION", "EXTRACTED_SALARY_RANGE", "EXTRACTED_TIMELINE"]:
+            line = [l for l in lines if l.startswith(field)][0]
+            extracted[field] = line.split(":")[1].strip()
+
+        return score, extracted
     except:
-        return 0.0
+        return 0.0, {
+            "EXTRACTED_GPA": "N/A", "EXTRACTED_EDUCATION": "N/A", "EXTRACTED_SKILLS": "N/A",
+            "EXTRACTED_WORK_TYPE": "N/A", "EXTRACTED_SCHEDULE": "N/A",
+            "EXTRACTED_INDUSTRY": "N/A", "EXTRACTED_ORGANIZATION": "N/A",
+            "EXTRACTED_PRIOR_EXPERIENCES": "N/A", "EXTRACTED_LOCATION": "N/A",
+            "EXTRACTED_SALARY_RANGE": "N/A", "EXTRACTED_TIMELINE": "N/A"
+        }
 
+# ---- UI ----
 
-# UI starts
 st.title("CareerNodes: AI-Powered Internship Graph Matcher")
 
-# Collect user inputs
+gpa = st.number_input("GPA", min_value=0.0, max_value=4.0, step=0.01)
+education = st.selectbox("Education Level", [
+    "High School Junior", "High School Senior", "High School Diploma",
+    "Undergrad Freshman", "Undergrad Sophomore", "Undergrad Junior",
+    "Undergrad Senior", "Bachelor's Degree", "Associates Degree", "Grad Student"])
+school = st.text_input("Current School (College or High School)")
+skills_input = st.text_input("Skills (comma-separated)")
+skills = [s.strip().lower() for s in skills_input.split(",") if s.strip()]
+type_preference = st.selectbox("Work Type", ["Remote", "On-Site", "Hybrid"])
+location = st.text_input("Preferred Location")
+industry_preference = st.multiselect("Industry", ["Tech", "Finance", "Healthcare", "Education", "Government", "Nonprofit", "Consulting", "Manufacturing", "Media", "Energy", "Legal", "Other"])
+org_type_preference = st.multiselect("Organization Type", ["Startup", "Large Company", "Small Business", "University / Research", "Government Agency", "Nonprofit", "Venture Capital", "Other"])
+schedule_preference = st.selectbox("Schedule", ["Full-Time", "Part-Time"])
+salary_min = st.number_input("Min Annual Salary ($)", min_value=0)
+salary_max = st.number_input("Max Annual Salary ($)", min_value=0)
 
-# Same as before — keep your UI exactly as you have it (omitted for brevity)
+resume_file = st.file_uploader("Upload Resume (PDF or TXT)", type=["pdf", "txt"])
+resume_text = extract_text_from_resume(resume_file) if resume_file else ""
+if resume_file: st.success("Resume uploaded!")
 
-# Resume upload as before (omitted for brevity)
+resume_excerpt = ""
+if resume_text:
+    experience_index = resume_text.lower().find("experience")
+    if experience_index != -1:
+        resume_excerpt = resume_text[experience_index:experience_index + 3000]
+    else:
+        resume_excerpt = resume_text[:3000]
+else:
+    resume_excerpt = "No resume provided"
 
 if st.button("Find Matches"):
     internships_raw = fetch_internships("internship", location)
-
-    # Fast pre-filter to drastically reduce Cohere API calls
-    internships_filtered = fast_filter(internships_raw, {
-        'location': location,
-        'skills': skills,
-        'industry': industry_preference
-    })
+    internships = []
+    for job in internships_raw:
+        internships.append({
+            "company": job.get("company", {}).get("display_name", "Unknown"),
+            "title": job.get("title", "Unknown Title"),
+            "description": job.get("description", ""),
+            "location": job.get("location", {}).get("display_name", "Unknown Location"),
+            "salary_min": job.get("salary_min") or 0,
+            "salary_max": job.get("salary_max") or 0,
+        })
 
     user_inputs = {
         "gpa": gpa, "education": education, "school": school,
@@ -177,23 +197,47 @@ if st.button("Find Matches"):
         "org_type": org_type_preference, "schedule": schedule_preference,
         "salary_min": salary_min, "salary_max": salary_max
     }
+
     profile_text = create_user_profile_text(user_inputs, resume_excerpt)
     st.write("♡ AI Matching in Progress...")
 
     results = []
+    for internship in internships:
+        job_text = (
+            f"{internship['title']} at {internship['company']} located in {internship['location']}. "
+            f"Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}"
+        )
+        score, extracted = analyze_and_score(profile_text, job_text)
+        internship["extracted"] = extracted
+        results.append((score, internship))
 
-    for job in internships_filtered:
-        job_text = f"{job['title']} at {job['company'].get('display_name', '')} located in {job['location'].get('display_name', '')}. Description: {job['description']}"
-        score = analyze_and_score(profile_text, job_text)
-        results.append((score, job))
-        time.sleep(0.5)  # very light rate limit protection
-
+    results = [r for r in results if r[0] > 0.1]
     results.sort(reverse=True, key=lambda x: x[0])
-    st.subheader("⌕ Top Matches:")
 
-    for score, internship in results[:10]:
-        st.markdown(f"**{internship['company']['display_name']} - {internship['title']}**")
+    st.subheader("⌕ Top Matches:")
+    for score, internship in results:
+        st.markdown(f"**{internship['company']} - {internship['title']}**")
         st.write(f"Score: {score:.3f}")
-        st.write(f"Location: {internship['location']['display_name']}")
+        st.write(f"Location: {internship['location']}")
         st.write(f"Salary: ${internship['salary_min']} - ${internship['salary_max']}")
+        with st.expander("Full Description"):
+            st.write(internship['description'])
+        with st.expander("Extracted Details"):
+            for k,v in internship['extracted'].items():
+                st.write(f"{k.replace('EXTRACTED_', '')}: {v}")
         st.write("---")
+
+    G = nx.Graph()
+    G.add_node("You")
+    for score, internship in results[:50]:
+        node = f"{internship['company']}\n{internship['title']}"
+        G.add_node(node)
+        G.add_edge("You", node, weight=score)
+    net = Network(height="600px", width="100%", bgcolor="#222222", font_color="white")
+    net.from_nx(G)
+    net.save_graph("graph.html")
+
+    with open("graph.html", "r", encoding='utf-8') as HtmlFile:
+        source_code = HtmlFile.read()
+        components.html(source_code, height=650, width=900)
+        
