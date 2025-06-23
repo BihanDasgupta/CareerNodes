@@ -164,7 +164,8 @@ salary_max = st.number_input("Max Annual Salary ($)", min_value=0)
 
 resume_file = st.file_uploader("Upload Resume (PDF or TXT)", type=["pdf", "txt"])
 resume_text = extract_text_from_resume(resume_file) if resume_file else ""
-if resume_file: st.write("Resume uploaded!")
+if resume_file: 
+    st.success("✅ Resume uploaded!")
 
 resume_excerpt = ""
 if resume_text:
