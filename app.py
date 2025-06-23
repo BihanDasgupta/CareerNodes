@@ -164,8 +164,7 @@ salary_max = st.number_input("Max Annual Salary ($)", min_value=0)
 
 resume_file = st.file_uploader("Upload Resume (PDF or TXT)", type=["pdf", "txt"])
 resume_text = extract_text_from_resume(resume_file) if resume_file else ""
-if resume_file: 
-    st.success("✅ Resume uploaded!")
+if resume_file: st.success("Resume uploaded!")
 
 resume_excerpt = ""
 if resume_text:
@@ -200,9 +199,14 @@ if st.button("Find Matches"):
     profile_text = create_user_profile_text(user_inputs, resume_excerpt)
     st.write("♡ AI Matching in Progress...")
 
+    education_hierarchy = [
+        "High School Junior", "High School Senior", "High School Diploma",
+        "Undergrad Freshman", "Undergrad Sophomore", "Undergrad Junior",
+        "Undergrad Senior", "Associates Degree", "Bachelor's Degree", "Grad Student"
+    ]
+
     results = []
     for internship in internships:
-        # Simple pre-filter: Skip jobs with non-matching location (unless remote listed)
         job_location = internship["location"].lower()
         if location.lower() not in job_location and "remote" not in job_location:
             continue
@@ -213,6 +217,40 @@ if st.button("Find Matches"):
         )
         score, extracted = analyze_and_score(profile_text, job_text)
         internship["extracted"] = extracted
+
+        # Post-filter: eligibility and industry
+        extracted_edu = extracted["EXTRACTED_EDUCATION"].strip()
+        extracted_gpa = extracted["EXTRACTED_GPA"].strip()
+        extracted_industry = extracted["EXTRACTED_INDUSTRY"].strip().lower()
+        extracted_skills = extracted["EXTRACTED_SKILLS"].strip().lower()
+
+        # Education filtering (if education requirement listed)
+        if extracted_edu != "No Preferred Education Level Listed":
+            try:
+                if education_hierarchy.index(extracted_edu) > education_hierarchy.index(education):
+                    continue
+            except:
+                pass
+
+        # GPA filtering (if GPA listed)
+        if extracted_gpa != "No GPA Requirement Listed.":
+            try:
+                if float(extracted_gpa) > gpa:
+                    continue
+            except:
+                pass
+
+        # Industry filtering
+        if extracted_industry != "" and extracted_industry != "n/a":
+            if not any(user_industry.lower() in extracted_industry for user_industry in industry_preference):
+                continue
+
+        # Skill filtering (light fuzzy match)
+        if len(skills) > 0:
+            skill_match = any(skill in extracted_skills for skill in skills)
+            if not skill_match:
+                continue
+
         results.append((score, internship))
 
     results.sort(reverse=True, key=lambda x: x[0])
@@ -243,4 +281,3 @@ if st.button("Find Matches"):
     with open("graph.html", "r", encoding='utf-8') as HtmlFile:
         source_code = HtmlFile.read()
         components.html(source_code, height=650, width=900)
-    
