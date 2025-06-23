@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 import PyPDF2
 import cohere
 import numpy as np
+import datetime
 
 # Load environment variables
 load_dotenv()
@@ -69,6 +70,7 @@ def create_user_profile_text(user_inputs, resume_text):
         f"Preferred Org Type: {', '.join(user_inputs['org_type'])}",
         f"Preferred Schedule: {user_inputs['schedule']}",
         f"Desired Salary: ${user_inputs['salary_min']} - ${user_inputs['salary_max']}",
+        f"Desired Internship Period: {user_inputs['start_date']} to {user_inputs['end_date']}",
         f"Resume: {resume_text if resume_text else 'No resume provided'}"
     ]
     return "\n".join(profile_parts)
@@ -88,8 +90,12 @@ FIRST, extract from the JOB LISTING (if available):
 - Schedule (full-time, part-time)
 - Industry category (Tech, Finance, Healthcare, etc.)
 - Organization type (Startup, Large Company, Nonprofit, Government, etc.)
+- Timeline (Start date or month, End date or month)
 
-SECOND, compare these extracted attributes against the USER PROFILE. Return a matching score between 0 and 1.
+SECOND, compare these extracted attributes against the USER PROFILE. Return a matching score between 0 and 1. 
+In your scoring, truly consider all of the factors that the user provides in the USER PROFILE and how good of a fit you think the internship would be based on what is in the JOB LISTING. Perform a thorough analysis in your scoring with the purpose of providing the user with the best possible matches for an internship.
+If the USER PROFILE contains anything that does not match a requirement in the JOB LISTING (i.e. user does not have required education level), give the JOB LISTING a score of 0. If the JOB LISTING contains anything that does not meet a requirement in the USER PROFILE (i.e. the job is remote but user is looking for onsite), give it a lower score, not necessarily 0 but not high either.
+The results must be as catered to the user's needs as possible all the while meeting the internship's requirements. 
 
 USER PROFILE:
 {user_profile_text}
@@ -110,6 +116,7 @@ EXTRACTED_WORK_TYPE: <value>
 EXTRACTED_SCHEDULE: <value>
 EXTRACTED_INDUSTRY: <value>
 EXTRACTED_ORGANIZATION: <value>
+EXTRACTED_TIMELINE: <value or 'No start/end date specified.'>
 """
 
     response = co.chat(model="command-r-plus", message=prompt)
@@ -124,7 +131,7 @@ EXTRACTED_ORGANIZATION: <value>
         extracted = {}
         for field in ["EXTRACTED_GPA", "EXTRACTED_EDUCATION", "EXTRACTED_SKILLS",
                       "EXTRACTED_WORK_TYPE", "EXTRACTED_SCHEDULE",
-                      "EXTRACTED_INDUSTRY", "EXTRACTED_ORGANIZATION", "EXTRACTED_PRIOR_EXPERIENCES", "EXTRACTED_LOCATION", "EXTRACTED_SALARY_RANGE"]:
+                      "EXTRACTED_INDUSTRY", "EXTRACTED_ORGANIZATION", "EXTRACTED_PRIOR_EXPERIENCES", "EXTRACTED_LOCATION", "EXTRACTED_SALARY_RANGE", "EXTRACTED_TIMELINE"]:
             line = [l for l in lines if l.startswith(field)][0]
             extracted[field] = line.split(":")[1].strip()
         
@@ -140,7 +147,8 @@ EXTRACTED_ORGANIZATION: <value>
             "EXTRACTED_ORGANIZATION": "N/A",
             "EXTRACTED_PRIOR_EXPERIENCES": "N/A",
             "EXTRACTED_LOCATION": "N/A",
-            "EXTRACTED_SALARY_RANGE": "N/A"
+            "EXTRACTED_SALARY_RANGE": "N/A",
+            "EXTRACTED_TIMELINE": "N/A"
         }
 
 # UI
@@ -161,6 +169,9 @@ org_type_preference = st.multiselect("Organization Type", ["Startup", "Large Com
 schedule_preference = st.selectbox("Schedule", ["Full-Time", "Part-Time"])
 salary_min = st.number_input("Min Annual Salary ($)", min_value=0)
 salary_max = st.number_input("Max Annual Salary ($)", min_value=0)
+
+start_date = st.date_input("Desired Internship Start Date", value=datetime.date.today())
+end_date = st.date_input("Desired Internship End Date", value=datetime.date.today() + datetime.timedelta(days=90))
 
 resume_file = st.file_uploader("Upload Resume (PDF or TXT)", type=["pdf", "txt"])
 resume_text = extract_text_from_resume(resume_file) if resume_file else ""
@@ -193,7 +204,8 @@ if st.button("Find Matches"):
         "gpa": gpa, "education": education, "school": school,
         "skills": skills, "location": location, "industry": industry_preference,
         "org_type": org_type_preference, "schedule": schedule_preference,
-        "salary_min": salary_min, "salary_max": salary_max
+        "salary_min": salary_min, "salary_max": salary_max,
+        "start_date": str(start_date), "end_date": str(end_date)
     }
 
     profile_text = create_user_profile_text(user_inputs, resume_excerpt)
@@ -218,13 +230,12 @@ if st.button("Find Matches"):
         score, extracted = analyze_and_score(profile_text, job_text)
         internship["extracted"] = extracted
 
-        # Post-filter: eligibility and industry
         extracted_edu = extracted["EXTRACTED_EDUCATION"].strip()
         extracted_gpa = extracted["EXTRACTED_GPA"].strip()
         extracted_industry = extracted["EXTRACTED_INDUSTRY"].strip().lower()
         extracted_skills = extracted["EXTRACTED_SKILLS"].strip().lower()
+        extracted_timeline = extracted["EXTRACTED_TIMELINE"].strip().lower()
 
-        # Education filtering (if education requirement listed)
         if extracted_edu != "No Preferred Education Level Listed":
             try:
                 if education_hierarchy.index(extracted_edu) > education_hierarchy.index(education):
@@ -232,7 +243,6 @@ if st.button("Find Matches"):
             except:
                 pass
 
-        # GPA filtering (if GPA listed)
         if extracted_gpa != "No GPA Requirement Listed.":
             try:
                 if float(extracted_gpa) > gpa:
@@ -240,15 +250,17 @@ if st.button("Find Matches"):
             except:
                 pass
 
-        # Industry filtering
         if extracted_industry != "" and extracted_industry != "n/a":
             if not any(user_industry.lower() in extracted_industry for user_industry in industry_preference):
                 continue
 
-        # Skill filtering (light fuzzy match)
         if len(skills) > 0:
             skill_match = any(skill in extracted_skills for skill in skills)
             if not skill_match:
+                continue
+
+        if extracted_timeline != "" and extracted_timeline != "no start/end date specified.":
+            if str(start_date.year) not in extracted_timeline and str(end_date.year) not in extracted_timeline:
                 continue
 
         results.append((score, internship))
