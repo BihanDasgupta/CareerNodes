@@ -234,7 +234,6 @@ if st.button("Find Matches"):
         extracted_gpa = extracted["EXTRACTED_GPA"].strip()
         extracted_industry = extracted["EXTRACTED_INDUSTRY"].strip().lower()
         extracted_skills = extracted["EXTRACTED_SKILLS"].strip().lower()
-        extracted_timeline = extracted["EXTRACTED_TIMELINE"].strip().lower()
 
         if extracted_edu != "No Preferred Education Level Listed":
             try:
@@ -257,10 +256,6 @@ if st.button("Find Matches"):
         if len(skills) > 0:
             skill_match = any(skill in extracted_skills for skill in skills)
             if not skill_match:
-                continue
-
-        if extracted_timeline != "" and extracted_timeline != "no start/end date specified.":
-            if str(start_date.year) not in extracted_timeline and str(end_date.year) not in extracted_timeline:
                 continue
 
         results.append((score, internship))
