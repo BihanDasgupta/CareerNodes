@@ -115,7 +115,6 @@ EXTRACTED_ORGANIZATION: <value>
     response = co.chat(model="command-r-plus", message=prompt)
     reply = response.text.strip()
     
-    # Very simple parsing (could make more robust)
     try:
         lines = reply.split("\n")
         score_line = [l for l in lines if l.startswith("MATCH_SCORE:")][0]
@@ -160,14 +159,13 @@ location = st.text_input("Preferred Location")
 industry_preference = st.multiselect("Industry", ["Tech", "Finance", "Healthcare", "Education", "Government", "Nonprofit", "Consulting", "Manufacturing", "Media", "Energy", "Legal", "Other"])
 org_type_preference = st.multiselect("Organization Type", ["Startup", "Large Company", "Small Business", "University / Research", "Government Agency", "Nonprofit", "Venture Capital", "Other"])
 schedule_preference = st.selectbox("Schedule", ["Full-Time", "Part-Time"])
-salary_min = st.number_input("Min Salary ($)", min_value=0)
-salary_max = st.number_input("Max Salary ($)", min_value=0)
+salary_min = st.number_input("Min Annual Salary ($)", min_value=0)
+salary_max = st.number_input("Max Annual Salary ($)", min_value=0)
 
 resume_file = st.file_uploader("Upload Resume (PDF or TXT)", type=["pdf", "txt"])
 resume_text = extract_text_from_resume(resume_file) if resume_file else ""
 if resume_file: st.write("Resume uploaded!")
 
-# Resume excerpt limiting logic
 resume_excerpt = ""
 if resume_text:
     experience_index = resume_text.lower().find("experience")
@@ -203,6 +201,11 @@ if st.button("Find Matches"):
 
     results = []
     for internship in internships:
+        # Simple pre-filter: Skip jobs with non-matching location (unless remote listed)
+        job_location = internship["location"].lower()
+        if location.lower() not in job_location and "remote" not in job_location:
+            continue
+        
         job_text = (
             f"{internship['title']} at {internship['company']} located in {internship['location']}. "
             f"Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}"
@@ -239,3 +242,4 @@ if st.button("Find Matches"):
     with open("graph.html", "r", encoding='utf-8') as HtmlFile:
         source_code = HtmlFile.read()
         components.html(source_code, height=650, width=900)
+    
