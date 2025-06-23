@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 import PyPDF2
 import cohere
 import numpy as np
+import datetime
 
 # Load environment variables
 load_dotenv()
@@ -60,15 +61,17 @@ def extract_text_from_resume(file):
 
 def create_user_profile_text(user_inputs, resume_text):
     profile_parts = [
-        f"GPA: {user_inputs['gpa']}",
+        f"GPA: {user_inputs['gpa'] if user_inputs['gpa'] else 'Not Provided'}",
         f"Education Level: {user_inputs['education']}",
         f"School: {user_inputs['school']}",
-        f"Skills: {', '.join(user_inputs['skills'])}",
+        f"Major: {user_inputs['major']}",
+        f"Skills: {', '.join(user_inputs['skills']) if user_inputs['skills'] else 'Not Provided'}",
         f"Preferred Location: {user_inputs['location']}",
-        f"Preferred Industry: {', '.join(user_inputs['industry'])}",
-        f"Preferred Org Type: {', '.join(user_inputs['org_type'])}",
+        f"Preferred Industry: {', '.join(user_inputs['industry']) if user_inputs['industry'] else 'Not Provided'}",
+        f"Preferred Org Type: {', '.join(user_inputs['org_type']) if user_inputs['org_type'] else 'Not Provided'}",
         f"Preferred Schedule: {user_inputs['schedule']}",
         f"Desired Salary: ${user_inputs['salary_min']} - ${user_inputs['salary_max']}",
+        f"Preferred Timeline: {user_inputs['start_date']} to {user_inputs['end_date']}",
         f"Resume: {resume_text if resume_text else 'No resume provided'}"
     ]
     return "\n".join(profile_parts)
@@ -93,7 +96,7 @@ FIRST, extract from the JOB LISTING (if available):
 SECOND, compare these extracted attributes against the USER PROFILE. Return a matching score between 0 and 1. 
 In your scoring, truly consider all of the factors that the user provides in the USER PROFILE and how good of a fit you think the internship would be based on what is in the JOB LISTING. Perform a thorough analysis in your scoring with the purpose of providing the user with the best possible matches for an internship.
 If the USER PROFILE contains anything that does not match a requirement in the JOB LISTING (i.e. user does not have required education level), give the JOB LISTING a score of 0. If the JOB LISTING contains anything that does not meet a requirement in the USER PROFILE (i.e. the job is remote but user is looking for onsite), give it a lower score, not necessarily 0 but not high either.
-The results must be as catered to the user's needs as possible all the while meeting the internship's requirements.
+The results must be as catered to the user's needs as possible all the while meeting the internship's requirements. 
 
 USER PROFILE:
 {user_profile_text}
@@ -129,33 +132,30 @@ EXTRACTED_TIMELINE: <value or 'No start/end date specified.'>
         extracted = {}
         for field in ["EXTRACTED_GPA", "EXTRACTED_EDUCATION", "EXTRACTED_SKILLS",
                       "EXTRACTED_WORK_TYPE", "EXTRACTED_SCHEDULE",
-                      "EXTRACTED_INDUSTRY", "EXTRACTED_ORGANIZATION", "EXTRACTED_PRIOR_EXPERIENCES",
-                      "EXTRACTED_LOCATION", "EXTRACTED_SALARY_RANGE", "EXTRACTED_TIMELINE"]:
+                      "EXTRACTED_INDUSTRY", "EXTRACTED_ORGANIZATION", "EXTRACTED_PRIOR_EXPERIENCES", "EXTRACTED_LOCATION", "EXTRACTED_SALARY_RANGE", "EXTRACTED_TIMELINE"]:
             line = [l for l in lines if l.startswith(field)][0]
             extracted[field] = line.split(":")[1].strip()
-
         return score, extracted
     except:
-        return 0.0, {
-            "EXTRACTED_GPA": "N/A", "EXTRACTED_EDUCATION": "N/A", "EXTRACTED_SKILLS": "N/A",
-            "EXTRACTED_WORK_TYPE": "N/A", "EXTRACTED_SCHEDULE": "N/A",
-            "EXTRACTED_INDUSTRY": "N/A", "EXTRACTED_ORGANIZATION": "N/A",
-            "EXTRACTED_PRIOR_EXPERIENCES": "N/A", "EXTRACTED_LOCATION": "N/A",
-            "EXTRACTED_SALARY_RANGE": "N/A", "EXTRACTED_TIMELINE": "N/A"
-        }
+        return 0.0, {}
 
-# ---- UI ----
-
+# UI
 st.title("CareerNodes: AI-Powered Internship Graph Matcher")
 
-gpa = st.number_input("GPA", min_value=0.0, max_value=4.0, step=0.01)
+gpa = st.number_input("GPA", min_value=0.0, max_value=4.0, step=0.01, format="%.2f")
+gpa = gpa if gpa > 0 else None
+
 education = st.selectbox("Education Level", [
     "High School Junior", "High School Senior", "High School Diploma",
     "Undergrad Freshman", "Undergrad Sophomore", "Undergrad Junior",
     "Undergrad Senior", "Bachelor's Degree", "Associates Degree", "Grad Student"])
+
 school = st.text_input("Current School (College or High School)")
+major = st.text_input("Current Major or Intended Major")
+
 skills_input = st.text_input("Skills (comma-separated)")
 skills = [s.strip().lower() for s in skills_input.split(",") if s.strip()]
+
 type_preference = st.selectbox("Work Type", ["Remote", "On-Site", "Hybrid"])
 location = st.text_input("Preferred Location")
 industry_preference = st.multiselect("Industry", ["Tech", "Finance", "Healthcare", "Education", "Government", "Nonprofit", "Consulting", "Manufacturing", "Media", "Energy", "Legal", "Other"])
@@ -163,10 +163,21 @@ org_type_preference = st.multiselect("Organization Type", ["Startup", "Large Com
 schedule_preference = st.selectbox("Schedule", ["Full-Time", "Part-Time"])
 salary_min = st.number_input("Min Annual Salary ($)", min_value=0)
 salary_max = st.number_input("Max Annual Salary ($)", min_value=0)
+salary_min = salary_min if salary_min > 0 else None
+salary_max = salary_max if salary_max > 0 else None
+
+use_dates = st.checkbox("Filter by Timeline")
+if use_dates:
+    start_date = st.date_input("Preferred Timeline (Start)", value=datetime.date.today())
+    end_date = st.date_input("Preferred Timeline (End)", value=datetime.date.today() + datetime.timedelta(days=90))
+else:
+    start_date = "No Preferred Date"
+    end_date = "No Preferred Date"
 
 resume_file = st.file_uploader("Upload Resume (PDF or TXT)", type=["pdf", "txt"])
 resume_text = extract_text_from_resume(resume_file) if resume_file else ""
-if resume_file: st.success("Resume uploaded!")
+if resume_file:
+    st.success("Resume uploaded!")
 
 resume_excerpt = ""
 if resume_text:
@@ -192,29 +203,30 @@ if st.button("Find Matches"):
         })
 
     user_inputs = {
-        "gpa": gpa, "education": education, "school": school,
+        "gpa": gpa, "education": education, "school": school, "major": major,
         "skills": skills, "location": location, "industry": industry_preference,
         "org_type": org_type_preference, "schedule": schedule_preference,
-        "salary_min": salary_min, "salary_max": salary_max
+        "salary_min": salary_min, "salary_max": salary_max,
+        "start_date": str(start_date), "end_date": str(end_date)
     }
 
     profile_text = create_user_profile_text(user_inputs, resume_excerpt)
-    st.write("♡ AI Matching in Progress...")
+    st.write("\u2661 AI Matching in Progress...")
 
     results = []
     for internship in internships:
-        job_text = (
-            f"{internship['title']} at {internship['company']} located in {internship['location']}. "
-            f"Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}"
-        )
+        job_location = internship["location"].lower()
+        if location.lower() not in job_location and "remote" not in job_location:
+            continue
+        job_text = (f"{internship['title']} at {internship['company']} located in {internship['location']}. "
+                    f"Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}")
         score, extracted = analyze_and_score(profile_text, job_text)
         internship["extracted"] = extracted
         results.append((score, internship))
 
-    results = [r for r in results if r[0] > 0.1]
     results.sort(reverse=True, key=lambda x: x[0])
-
-    st.subheader("⌕ Top Matches:")
+    
+    st.subheader("\u2315 Top Matches:")
     for score, internship in results:
         st.markdown(f"**{internship['company']} - {internship['title']}**")
         st.write(f"Score: {score:.3f}")
@@ -240,4 +252,3 @@ if st.button("Find Matches"):
     with open("graph.html", "r", encoding='utf-8') as HtmlFile:
         source_code = HtmlFile.read()
         components.html(source_code, height=650, width=900)
-        
