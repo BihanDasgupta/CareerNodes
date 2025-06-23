@@ -7,14 +7,12 @@ import streamlit.components.v1 as components
 from dotenv import load_dotenv
 import PyPDF2
 import cohere
-from cohere.error import CohereAPIError
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
 # Load environment variables
 load_dotenv()
 
-# Load secrets
 if "adzuna" in st.secrets:
     ADZUNA_APP_ID = st.secrets["adzuna"]["app_id"]
     ADZUNA_APP_KEY = st.secrets["adzuna"]["app_key"]
@@ -30,7 +28,7 @@ else:
 ADZUNA_COUNTRY = "us"
 co = cohere.Client(COHERE_API_KEY)
 
-# --- Functions ---
+# Functions
 def fetch_internships(query, location, results_limit=20):
     url = f"https://api.adzuna.com/v1/api/jobs/{ADZUNA_COUNTRY}/search/1"
     params = {
@@ -79,21 +77,17 @@ def embed_text(text):
         st.error("No valid text to embed.")
         return None
     try:
-        response = co.embed(
-            texts=[text],
-            model="embed-english-v3.0",
-            input_type="search_document"
-        )
+        response = co.embed(texts=[text], model="embed-english-v3.0", input_type="search_document")
         return np.array(response.embeddings)
-    except CohereAPIError as e:
+    except Exception as e:
         st.error(f"Cohere embedding failed: {str(e)}")
         return None
 
 def calculate_similarity(user_embedding, job_embedding):
     return cosine_similarity(user_embedding, job_embedding)[0][0]
 
-# --- Streamlit App ---
-st.title("CareerNodes: AI-Powered Internship Matcher (Phase 2)")
+# Streamlit App
+st.title("CareerNodes: AI-Powered Internship Matcher (Production Version)")
 
 # User Inputs
 gpa = st.number_input("Enter your GPA", min_value=0.0, max_value=4.0, step=0.01)
@@ -126,8 +120,9 @@ resume_text = ""
 if resume_file:
     resume_text = extract_text_from_resume(resume_file)
     st.write("Resume successfully uploaded!")
-    st.write(resume_text[:1000])
+    st.write(resume_text[:1000])  # Preview first 1000 characters
 
+# Main logic
 if st.button("Find Matches"):
     internships_raw = fetch_internships("internship", location)
     internships = []
@@ -154,9 +149,9 @@ if st.button("Find Matches"):
     }
 
     user_profile_text = create_user_profile_text(user_inputs, resume_text)
+    sanitized_profile_text = user_profile_text[:2000]  # Limit length for embedding safety
     st.write("Generating embeddings and matching...")
 
-    sanitized_profile_text = user_profile_text[:2000]
     user_embedding = embed_text(sanitized_profile_text)
 
     if user_embedding is None:
@@ -181,7 +176,7 @@ if st.button("Find Matches"):
             st.write(f"Description: {internship['description'][:300]}...")
             st.write("---")
 
-        # Graph visualization
+        # Optional Graph Visualization
         G = nx.Graph()
         G.add_node("You")
         for similarity, internship in results[:5]:
