@@ -1,6 +1,5 @@
 import streamlit as st
 import requests
-import re
 import os
 import networkx as nx
 from pyvis.network import Network
@@ -12,9 +11,10 @@ from cohere.error import CohereAPIError
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
-# --- Load environment variables ---
+# Load environment variables
 load_dotenv()
 
+# Load secrets
 if "adzuna" in st.secrets:
     ADZUNA_APP_ID = st.secrets["adzuna"]["app_id"]
     ADZUNA_APP_KEY = st.secrets["adzuna"]["app_key"]
@@ -61,10 +61,6 @@ def extract_text_from_resume(file):
                 text += extracted + "\n"
     return text
 
-def sanitize_text(text, max_chars=1500):
-    text = re.sub(r'\s+', ' ', text)
-    return text[:max_chars]
-
 def create_user_profile_text(user_inputs, resume_text):
     profile_parts = [
         f"GPA: {user_inputs['gpa']}",
@@ -83,7 +79,11 @@ def embed_text(text):
         st.error("No valid text to embed.")
         return None
     try:
-        response = co.embed(texts=[text], model="embed-english-v3.0")
+        response = co.embed(
+            texts=[text],
+            model="embed-english-v3.0",
+            input_type="search_document"
+        )
         return np.array(response.embeddings)
     except CohereAPIError as e:
         st.error(f"Cohere embedding failed: {str(e)}")
@@ -154,8 +154,9 @@ if st.button("Find Matches"):
     }
 
     user_profile_text = create_user_profile_text(user_inputs, resume_text)
-    sanitized_profile_text = sanitize_text(user_profile_text, max_chars=1500)
     st.write("Generating embeddings and matching...")
+
+    sanitized_profile_text = user_profile_text[:2000]
     user_embedding = embed_text(sanitized_profile_text)
 
     if user_embedding is None:
@@ -163,9 +164,8 @@ if st.button("Find Matches"):
     else:
         results = []
         for internship in internships:
-            job_text_raw = f"{internship['title']} at {internship['company']}: {internship['description']}"
-            job_text = sanitize_text(job_text_raw, max_chars=1000)
-            job_embedding = embed_text(job_text)
+            job_text = f"{internship['title']} at {internship['company']}: {internship['description']}"
+            job_embedding = embed_text(job_text[:2000])
             if job_embedding is not None:
                 similarity = calculate_similarity(user_embedding, job_embedding)
                 results.append((similarity, internship))
