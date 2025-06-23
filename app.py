@@ -192,8 +192,10 @@ if st.button("Find Matches"):
 
     results = []
     for internship in internships:
-        job_text = f"{internship['title']} at {internship['company']} located in {internship['location']}.
-        Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}"
+        job_text = (
+            f"{internship['title']} at {internship['company']} located in {internship['location']}. "
+            f"Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}"
+        )
         score, extracted = analyze_and_score(profile_text, job_text)
         internship["extracted"] = extracted
         results.append((score, internship))
