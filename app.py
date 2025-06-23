@@ -97,6 +97,8 @@ In your scoring, truly consider all of the factors that the user provides in the
 If the USER PROFILE contains anything that does not match a requirement in the JOB LISTING (i.e. user does not have required education level), give the JOB LISTING a score of 0. If the JOB LISTING contains anything that does not meet a requirement in the USER PROFILE (i.e. the job is remote but user is looking for onsite), give it a lower score, not necessarily 0 but not high either.
 The results must be as catered to the user's needs as possible all the while meeting the internship's requirements. 
 
+If the JOB LISTING contains a timeline that falls fully or partially within the user's desired internship period, score higher. If the internship is fully outside of the user's specified period, score lower or zero depending on relevance.
+
 USER PROFILE:
 {user_profile_text}
 
