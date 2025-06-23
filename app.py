@@ -209,7 +209,7 @@ if st.button("Find Matches"):
     }
 
     profile_text = create_user_profile_text(user_inputs, resume_excerpt)
-    st.write("♡ AI Matching in Progress...")
+    st.write("\u2661 AI Matching in Progress...")
 
     education_hierarchy = [
         "High School Junior", "High School Senior", "High School Diploma",
@@ -267,7 +267,7 @@ if st.button("Find Matches"):
 
     results.sort(reverse=True, key=lambda x: x[0])
     
-    st.subheader("⌕ Top Matches:")
+    st.subheader("\u2315 Top Matches:")
     for score, internship in results:
         st.markdown(f"**{internship['company']} - {internship['title']}**")
         st.write(f"Score: {score:.3f}")
