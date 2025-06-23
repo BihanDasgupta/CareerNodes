@@ -97,8 +97,6 @@ In your scoring, truly consider all of the factors that the user provides in the
 If the USER PROFILE contains anything that does not match a requirement in the JOB LISTING (i.e. user does not have required education level), give the JOB LISTING a score of 0. If the JOB LISTING contains anything that does not meet a requirement in the USER PROFILE (i.e. the job is remote but user is looking for onsite), give it a lower score, not necessarily 0 but not high either.
 The results must be as catered to the user's needs as possible all the while meeting the internship's requirements. 
 
-If the JOB LISTING contains a timeline that falls fully or partially within the user's desired internship period, score higher. If the internship is fully outside of the user's specified period, score lower or zero depending on relevance.
-
 USER PROFILE:
 {user_profile_text}
 
@@ -211,7 +209,7 @@ if st.button("Find Matches"):
     }
 
     profile_text = create_user_profile_text(user_inputs, resume_excerpt)
-    st.write("\u2661 AI Matching in Progress...")
+    st.write("♡ AI Matching in Progress...")
 
     education_hierarchy = [
         "High School Junior", "High School Senior", "High School Diploma",
@@ -236,6 +234,7 @@ if st.button("Find Matches"):
         extracted_gpa = extracted["EXTRACTED_GPA"].strip()
         extracted_industry = extracted["EXTRACTED_INDUSTRY"].strip().lower()
         extracted_skills = extracted["EXTRACTED_SKILLS"].strip().lower()
+        extracted_timeline = extracted["EXTRACTED_TIMELINE"].strip().lower()
 
         if extracted_edu != "No Preferred Education Level Listed":
             try:
@@ -260,11 +259,15 @@ if st.button("Find Matches"):
             if not skill_match:
                 continue
 
+        if extracted_timeline != "" and extracted_timeline != "no start/end date specified.":
+            if str(start_date.year) not in extracted_timeline and str(end_date.year) not in extracted_timeline:
+                continue
+
         results.append((score, internship))
 
     results.sort(reverse=True, key=lambda x: x[0])
     
-    st.subheader("\u2315 Top Matches:")
+    st.subheader("⌕ Top Matches:")
     for score, internship in results:
         st.markdown(f"**{internship['company']} - {internship['title']}**")
         st.write(f"Score: {score:.3f}")
