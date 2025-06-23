@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 import PyPDF2
 import cohere
 import numpy as np
-import datetime
 
 # Load environment variables
 load_dotenv()
@@ -70,7 +69,6 @@ def create_user_profile_text(user_inputs, resume_text):
         f"Preferred Org Type: {', '.join(user_inputs['org_type'])}",
         f"Preferred Schedule: {user_inputs['schedule']}",
         f"Desired Salary: ${user_inputs['salary_min']} - ${user_inputs['salary_max']}",
-        f"Desired Internship Period: {user_inputs['start_date']} to {user_inputs['end_date']}",
         f"Resume: {resume_text if resume_text else 'No resume provided'}"
     ]
     return "\n".join(profile_parts)
@@ -170,9 +168,6 @@ schedule_preference = st.selectbox("Schedule", ["Full-Time", "Part-Time"])
 salary_min = st.number_input("Min Annual Salary ($)", min_value=0)
 salary_max = st.number_input("Max Annual Salary ($)", min_value=0)
 
-start_date = st.date_input("Desired Internship Start Date", value=datetime.date.today())
-end_date = st.date_input("Desired Internship End Date", value=datetime.date.today() + datetime.timedelta(days=90))
-
 resume_file = st.file_uploader("Upload Resume (PDF or TXT)", type=["pdf", "txt"])
 resume_text = extract_text_from_resume(resume_file) if resume_file else ""
 if resume_file: st.success("Resume uploaded!")
@@ -204,8 +199,7 @@ if st.button("Find Matches"):
         "gpa": gpa, "education": education, "school": school,
         "skills": skills, "location": location, "industry": industry_preference,
         "org_type": org_type_preference, "schedule": schedule_preference,
-        "salary_min": salary_min, "salary_max": salary_max,
-        "start_date": str(start_date), "end_date": str(end_date)
+        "salary_min": salary_min, "salary_max": salary_max
     }
 
     profile_text = create_user_profile_text(user_inputs, resume_excerpt)
@@ -230,12 +224,13 @@ if st.button("Find Matches"):
         score, extracted = analyze_and_score(profile_text, job_text)
         internship["extracted"] = extracted
 
+        # Post-filter: eligibility and industry
         extracted_edu = extracted["EXTRACTED_EDUCATION"].strip()
         extracted_gpa = extracted["EXTRACTED_GPA"].strip()
         extracted_industry = extracted["EXTRACTED_INDUSTRY"].strip().lower()
         extracted_skills = extracted["EXTRACTED_SKILLS"].strip().lower()
-        extracted_timeline = extracted["EXTRACTED_TIMELINE"].strip().lower()
 
+        # Education filtering (if education requirement listed)
         if extracted_edu != "No Preferred Education Level Listed":
             try:
                 if education_hierarchy.index(extracted_edu) > education_hierarchy.index(education):
@@ -243,6 +238,7 @@ if st.button("Find Matches"):
             except:
                 pass
 
+        # GPA filtering (if GPA listed)
         if extracted_gpa != "No GPA Requirement Listed.":
             try:
                 if float(extracted_gpa) > gpa:
@@ -250,17 +246,15 @@ if st.button("Find Matches"):
             except:
                 pass
 
+        # Industry filtering
         if extracted_industry != "" and extracted_industry != "n/a":
             if not any(user_industry.lower() in extracted_industry for user_industry in industry_preference):
                 continue
 
+        # Skill filtering (light fuzzy match)
         if len(skills) > 0:
             skill_match = any(skill in extracted_skills for skill in skills)
             if not skill_match:
-                continue
-
-        if extracted_timeline != "" and extracted_timeline != "no start/end date specified.":
-            if str(start_date.year) not in extracted_timeline and str(end_date.year) not in extracted_timeline:
                 continue
 
         results.append((score, internship))
@@ -293,3 +287,4 @@ if st.button("Find Matches"):
     with open("graph.html", "r", encoding='utf-8') as HtmlFile:
         source_code = HtmlFile.read()
         components.html(source_code, height=650, width=900)
+        
