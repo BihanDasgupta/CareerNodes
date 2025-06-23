@@ -8,6 +8,7 @@ import streamlit.components.v1 as components
 from dotenv import load_dotenv
 import PyPDF2
 import cohere
+from cohere.error import CohereAPIError
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -84,7 +85,7 @@ def embed_text(text):
     try:
         response = co.embed(texts=[text], model="embed-english-v3.0")
         return np.array(response.embeddings)
-    except cohere.CohereAPIError as e:
+    except CohereAPIError as e:
         st.error(f"Cohere embedding failed: {str(e)}")
         return None
 
