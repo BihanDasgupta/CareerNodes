@@ -61,17 +61,18 @@ def extract_text_from_resume(file):
 
 def create_user_profile_text(user_inputs, resume_text):
     profile_parts = [
-        f"GPA: {user_inputs['gpa'] if user_inputs['gpa'] else 'Not Provided'}",
+        f"GPA: {user_inputs['gpa'] if user_inputs['gpa'] is not None else 'No GPA Provided'}",
         f"Education Level: {user_inputs['education']}",
         f"School: {user_inputs['school']}",
-        f"Major: {user_inputs['major']}",
-        f"Skills: {', '.join(user_inputs['skills']) if user_inputs['skills'] else 'Not Provided'}",
+        f"Current Major or Intended Major: {user_inputs['major'] if user_inputs['major'] else 'No Major Provided'}",
+        f"Skills: {', '.join(user_inputs['skills'])}",
         f"Preferred Location: {user_inputs['location']}",
-        f"Preferred Industry: {', '.join(user_inputs['industry']) if user_inputs['industry'] else 'Not Provided'}",
-        f"Preferred Org Type: {', '.join(user_inputs['org_type']) if user_inputs['org_type'] else 'Not Provided'}",
+        f"Preferred Industry: {', '.join(user_inputs['industry'])}",
+        f"Preferred Org Type: {', '.join(user_inputs['org_type'])}",
         f"Preferred Schedule: {user_inputs['schedule']}",
-        f"Desired Salary: ${user_inputs['salary_min']} - ${user_inputs['salary_max']}",
-        f"Preferred Timeline: {user_inputs['start_date']} to {user_inputs['end_date']}",
+        f"Desired Salary: {user_inputs['salary_min']} - {user_inputs['salary_max']}",
+        f"Preferred Timeline Start: {user_inputs['start_date']}",
+        f"Preferred Timeline End: {user_inputs['end_date']}",
         f"Resume: {resume_text if resume_text else 'No resume provided'}"
     ]
     return "\n".join(profile_parts)
@@ -92,11 +93,12 @@ FIRST, extract from the JOB LISTING (if available):
 - Industry category (Tech, Finance, Healthcare, etc.)
 - Organization type (Startup, Large Company, Nonprofit, Government, etc.)
 - Timeline (Start date or month, End date or month)
+- Intended Major or Field of Study
 
 SECOND, compare these extracted attributes against the USER PROFILE. Return a matching score between 0 and 1. 
 In your scoring, truly consider all of the factors that the user provides in the USER PROFILE and how good of a fit you think the internship would be based on what is in the JOB LISTING. Perform a thorough analysis in your scoring with the purpose of providing the user with the best possible matches for an internship.
 If the USER PROFILE contains anything that does not match a requirement in the JOB LISTING (i.e. user does not have required education level), give the JOB LISTING a score of 0. If the JOB LISTING contains anything that does not meet a requirement in the USER PROFILE (i.e. the job is remote but user is looking for onsite), give it a lower score, not necessarily 0 but not high either.
-The results must be as catered to the user's needs as possible all the while meeting the internship's requirements. 
+The results must be as catered to the user's needs as possible all the while meeting the internship's requirements.
 
 USER PROFILE:
 {user_profile_text}
@@ -118,21 +120,21 @@ EXTRACTED_SCHEDULE: <value>
 EXTRACTED_INDUSTRY: <value>
 EXTRACTED_ORGANIZATION: <value>
 EXTRACTED_TIMELINE: <value or 'No start/end date specified.'>
+EXTRACTED_MAJOR: <value or 'No specific major requirement listed.'>
 """
-
     response = co.chat(model="command-r-plus", message=prompt)
     reply = response.text.strip()
-
     try:
         lines = reply.split("\n")
         score_line = [l for l in lines if l.startswith("MATCH_SCORE:")][0]
         score = float(score_line.split(":")[1].strip())
         score = max(0.0, min(1.0, score))
-
         extracted = {}
         for field in ["EXTRACTED_GPA", "EXTRACTED_EDUCATION", "EXTRACTED_SKILLS",
-                      "EXTRACTED_WORK_TYPE", "EXTRACTED_SCHEDULE",
-                      "EXTRACTED_INDUSTRY", "EXTRACTED_ORGANIZATION", "EXTRACTED_PRIOR_EXPERIENCES", "EXTRACTED_LOCATION", "EXTRACTED_SALARY_RANGE", "EXTRACTED_TIMELINE"]:
+                      "EXTRACTED_WORK_TYPE", "EXTRACTED_SCHEDULE", "EXTRACTED_INDUSTRY",
+                      "EXTRACTED_ORGANIZATION", "EXTRACTED_PRIOR_EXPERIENCES",
+                      "EXTRACTED_LOCATION", "EXTRACTED_SALARY_RANGE", "EXTRACTED_TIMELINE",
+                      "EXTRACTED_MAJOR"]:
             line = [l for l in lines if l.startswith(field)][0]
             extracted[field] = line.split(":")[1].strip()
         return score, extracted
@@ -140,54 +142,39 @@ EXTRACTED_TIMELINE: <value or 'No start/end date specified.'>
         return 0.0, {}
 
 # UI
-st.title("CareerNodes: AI-Powered Internship Graph Matcher")
-
-gpa = st.number_input("GPA", min_value=0.0, max_value=4.0, step=0.01, format="%.2f")
-gpa = gpa if gpa > 0 else None
-
+gpa = st.number_input("GPA (Optional)", min_value=0.0, max_value=4.0, step=0.01, format="%0.2f")
+if gpa == 0.0:
+    gpa = None
 education = st.selectbox("Education Level", [
     "High School Junior", "High School Senior", "High School Diploma",
     "Undergrad Freshman", "Undergrad Sophomore", "Undergrad Junior",
     "Undergrad Senior", "Bachelor's Degree", "Associates Degree", "Grad Student"])
-
 school = st.text_input("Current School (College or High School)")
-major = st.text_input("Current Major or Intended Major")
-
+major = st.text_input("Current Major or Intended Major (Optional)")
 skills_input = st.text_input("Skills (comma-separated)")
 skills = [s.strip().lower() for s in skills_input.split(",") if s.strip()]
-
 type_preference = st.selectbox("Work Type", ["Remote", "On-Site", "Hybrid"])
 location = st.text_input("Preferred Location")
 industry_preference = st.multiselect("Industry", ["Tech", "Finance", "Healthcare", "Education", "Government", "Nonprofit", "Consulting", "Manufacturing", "Media", "Energy", "Legal", "Other"])
 org_type_preference = st.multiselect("Organization Type", ["Startup", "Large Company", "Small Business", "University / Research", "Government Agency", "Nonprofit", "Venture Capital", "Other"])
 schedule_preference = st.selectbox("Schedule", ["Full-Time", "Part-Time"])
-salary_min = st.number_input("Min Annual Salary ($)", min_value=0)
-salary_max = st.number_input("Max Annual Salary ($)", min_value=0)
-salary_min = salary_min if salary_min > 0 else None
-salary_max = salary_max if salary_max > 0 else None
+salary_min = st.number_input("Min Salary ($, Optional)", min_value=0)
+salary_max = st.number_input("Max Salary ($, Optional)", min_value=0)
+if salary_min == 0: salary_min = None
+if salary_max == 0: salary_max = None
 
-use_dates = st.checkbox("Filter by Timeline")
-if use_dates:
+# Calendar timeline selection
+use_calendar = st.checkbox("Specify Preferred Internship Timeline", value=False)
+if use_calendar:
     start_date = st.date_input("Preferred Timeline (Start)", value=datetime.date.today())
     end_date = st.date_input("Preferred Timeline (End)", value=datetime.date.today() + datetime.timedelta(days=90))
 else:
-    start_date = "No Preferred Date"
-    end_date = "No Preferred Date"
+    start_date = "No preferred date"
+    end_date = "No preferred date"
 
 resume_file = st.file_uploader("Upload Resume (PDF or TXT)", type=["pdf", "txt"])
 resume_text = extract_text_from_resume(resume_file) if resume_file else ""
-if resume_file:
-    st.success("Resume uploaded!")
-
-resume_excerpt = ""
-if resume_text:
-    experience_index = resume_text.lower().find("experience")
-    if experience_index != -1:
-        resume_excerpt = resume_text[experience_index:experience_index + 3000]
-    else:
-        resume_excerpt = resume_text[:3000]
-else:
-    resume_excerpt = "No resume provided"
+if resume_file: st.success("Resume uploaded!")
 
 if st.button("Find Matches"):
     internships_raw = fetch_internships("internship", location)
@@ -207,25 +194,20 @@ if st.button("Find Matches"):
         "skills": skills, "location": location, "industry": industry_preference,
         "org_type": org_type_preference, "schedule": schedule_preference,
         "salary_min": salary_min, "salary_max": salary_max,
-        "start_date": str(start_date), "end_date": str(end_date)
+        "start_date": start_date, "end_date": end_date
     }
 
-    profile_text = create_user_profile_text(user_inputs, resume_excerpt)
+    profile_text = create_user_profile_text(user_inputs, resume_text)
     st.write("\u2661 AI Matching in Progress...")
 
     results = []
     for internship in internships:
-        job_location = internship["location"].lower()
-        if location.lower() not in job_location and "remote" not in job_location:
-            continue
-        job_text = (f"{internship['title']} at {internship['company']} located in {internship['location']}. "
-                    f"Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}")
+        job_text = f"{internship['title']} at {internship['company']} located in {internship['location']}. Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}"
         score, extracted = analyze_and_score(profile_text, job_text)
         internship["extracted"] = extracted
         results.append((score, internship))
 
     results.sort(reverse=True, key=lambda x: x[0])
-    
     st.subheader("\u2315 Top Matches:")
     for score, internship in results:
         st.markdown(f"**{internship['company']} - {internship['title']}**")
