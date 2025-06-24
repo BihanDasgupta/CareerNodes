@@ -125,7 +125,7 @@ MATCH_SCORE:
             score = 0.5  # Default to neutral if parsing fails
 
         explanation_prompt = f"""
-You are a career advisor AI. Explain in 2-3 sentences why this job listing is a good match (or not) for you based on your profile. Be specific, professional, and helpful.
+You are a career advisor AI. Explain in 2-3 sentences why this job listing is a good match for you based on your profile. Be specific, professional, and helpful.
 
 USER PROFILE:
 {user_profile_text}
