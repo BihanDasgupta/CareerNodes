@@ -82,16 +82,19 @@ def rerank_internships(user_profile_text, internships):
         f"{internship['title']} at {internship['company']} located in {internship['location']}. Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}"
         for internship in internships
     ]
+    
     response = co.rerank(
-        model="rerank",
         query=user_profile_text,
         documents=job_texts,
         top_n=len(job_texts)
     )
-    ranked_results = [(r.relevance_score, internships[r.index]) for r in response.results]
-    return ranked_results
 
-# UI remains exactly the same
+    reranked_results = []
+    for result, internship in zip(response.results, internships):
+        internship["rerank_score"] = result.relevance_score
+        reranked_results.append((result.relevance_score, internship))
+    
+    return reranked_results
 
 st.markdown("""
 <style>
