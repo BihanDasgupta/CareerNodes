@@ -11,6 +11,7 @@ import numpy as np
 import datetime
 import html
 from pyvis.network import Network
+import time
 
 # Load environment variables
 load_dotenv()
@@ -314,7 +315,7 @@ def hybrid_analyze(user_profile_text, internships):
     for sim, internship in zip(similarities, internships):
         preliminary.append((sim, internship))
     preliminary.sort(reverse=True, key=lambda x: x[0])
-    top_candidates = preliminary[:20]
+    top_candidates = preliminary[:50]
 
     results = []
     for sim, internship in top_candidates:
@@ -352,12 +353,13 @@ JOB LISTING:
 
 EXPLANATION:
 """
+        time.sleep(1)
         explanation_response = openai.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "user", "content": explanation_prompt}]
         )
         explanation = explanation_response.choices[0].message.content.strip()
-
+        time.sleep(1)
         results.append((score, internship, explanation))
 
     results.sort(reverse=True, key=lambda x: x[0])
