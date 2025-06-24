@@ -315,7 +315,7 @@ def hybrid_analyze(user_profile_text, internships):
     for sim, internship in zip(similarities, internships):
         preliminary.append((sim, internship))
     preliminary.sort(reverse=True, key=lambda x: x[0])
-    top_candidates = preliminary[:50]
+    top_candidates = preliminary[:25]
 
     results = []
     for sim, internship in top_candidates:
@@ -453,39 +453,34 @@ if st.button("Find Matches"):
 
     st.subheader("🕸️ Career Network Visualization")
     st.markdown('<div class="graph-container">', unsafe_allow_html=True)
-
+x
     G = nx.Graph()
     G.add_node("You", size=30, color="#FF0000")
-
     for score, internship, _ in results:
-        node_label = f"{internship['company']} - {internship['title']}"
-        G.add_node(node_label, 
-                size=20 + score * 20, 
-                color=f"rgba({int(255 - score*200)}, {int(score*200)}, 150, 0.9)")
-        # Distance inversely proportional to score
-        distance = 100 * (1 - score + 0.1)  # avoid division by zero
-        G.add_edge("You", node_label, value=score * 10, length=distance)
+        label = f"{internship['company']} - {internship['title']}"
+        G.add_node(label, size=20 + score * 20, color=f"rgba({int(255 - score*200)}, {int(score*200)}, 150, 0.9)")
+        G.add_edge("You", label, value=score*10, length=100*(1-score+0.1))
 
-    net = Network(height="600px", width="100%", bgcolor="#222222", font_color="white")
+    net = Network(height="600px", width="100%", bgcolor="#0a0a0a", font_color="#FFFFFF")
     net.from_nx(G)
-
-    # Enable better physics simulation
     net.toggle_physics(True)
     net.set_options("""
     var options = {
-    "physics": {
+      "physics": {
         "forceAtlas2Based": {
-        "gravitationalConstant": -80,
-        "centralGravity": 0.005,
-        "springLength": 150,
-        "springConstant": 0.08
+          "gravitationalConstant": -50,
+          "centralGravity": 0.005,
+          "springLength": 180,
+          "springConstant": 0.06
         },
-        "maxVelocity": 50,
+        "maxVelocity": 40,
         "solver": "forceAtlas2Based",
-        "timestep": 0.35,
-        "stabilization": {"iterations": 150}
-    }
+        "stabilization": {"iterations": 200}
+      }
     }
     """)
-
     net.save_graph("graph.html")
+
+    with open("graph.html", "r", encoding="utf-8") as HtmlFile:
+        source_code = HtmlFile.read()
+        components.html(source_code, height=650, width=900)
