@@ -445,28 +445,21 @@ if st.button("Find Matches"):
 
     with open("graph.html", "r", encoding='utf-8') as HtmlFile:
         source_code = HtmlFile.read()
-        # Remove all borders and backgrounds, add glassmorphism effect
-        custom_css = '''<style>
-            body { background: transparent !important; }
-            #mynetwork {
-                background: rgba(26, 26, 46, 0.5) !important;
-                border: none !important;
-                border-radius: 18px !important;
-                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37) !important;
-                backdrop-filter: blur(8px) !important;
-                -webkit-backdrop-filter: blur(8px) !important;
-                margin: 0 auto !important;
-            }
-            html, body { border: none !important; }
-        </style>'''
-        # Insert custom CSS just after <head>
-        source_code = source_code.replace('<head>', '<head>' + custom_css)
         # Remove any inline border/background on the main div if present
-        source_code = source_code.replace('border: 1px solid white;', '')
+        for border_color in ['white', 'black', '#fff', '#ffffff', '#000', '#000000']:
+            source_code = source_code.replace(f'border: 1px solid {border_color};', '')
+        # Add a CSS rule to forcibly remove all borders in the graph area
+        custom_css = '''<style>#mynetwork, #mynetwork * { border: none !important; }</style>'''
+        if '<head>' in source_code:
+            source_code = source_code.replace('<head>', '<head>' + custom_css)
+        else:
+            source_code = custom_css + source_code
         source_code = source_code.replace('background: #222222;', 'background: rgba(26, 26, 46, 0.5);')
         components.html(source_code, height=650, width=900)
         
     st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('''<div class="graph-container glass-container">''', unsafe_allow_html=True)
 
     st.subheader("\u2315 Top Matches:")
 
