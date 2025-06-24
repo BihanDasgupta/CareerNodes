@@ -77,31 +77,25 @@ def create_user_profile_text(user_inputs, resume_text):
     ]
     return "\n".join(profile_parts)
 
-def truncate_text(text, max_chars=4000):
-    return text if len(text) <= max_chars else text[:max_chars]
+def hybrid_analyze(user_profile_text, internships):
+    # Embedding phase
+    profile_embed = co.embed(texts=[user_profile_text], model="embed-english-v3.0").embeddings[0]
+    job_texts = [f"{i['title']} at {i['company']} located in {i['location']}. {i['description']}" for i in internships]
+    job_embeds = co.embed(texts=job_texts, model="embed-english-v3.0").embeddings
+    similarities = np.dot(np.array(job_embeds), np.array(profile_embed))
 
-def analyze_and_score(user_profile_text, job_text):
-    prompt = f"""
-You are an internship matching AI given a USER PROFILE and JOB LISTING, and you are tasked with finding the best JOB LISTING matches for the given USER PROFILE.
+    preliminary = []
+    for sim, internship in zip(similarities, internships):
+        preliminary.append((sim, internship))
+    preliminary.sort(reverse=True, key=lambda x: x[0])
+    top_candidates = preliminary[:10]
 
-FIRST, extract from the JOB LISTING (if available):
-- Required or preferred GPA
-- Required or preferred education level
-- Required or preferred skill keywords
-- Required or preferred prior experiences
-- Location (city, state, country)
-- Salary range if paid 
-- Work Type (remote, hybrid, onsite)
-- Schedule (full-time, part-time)
-- Industry category (Tech, Finance, Healthcare, etc.)
-- Organization type (Startup, Large Company, Nonprofit, Government, etc.)
-- Timeline (Start date or month, End date or month)
-- Intended Major or Field of Study
-
-SECOND, compare these extracted attributes against the USER PROFILE. Return a matching score between 0 and 1. 
-In your scoring, truly consider all of the factors that the user provides in the USER PROFILE and how good of a fit you think the internship would be based on what is in the JOB LISTING. Perform a thorough analysis in your scoring with the purpose of providing the user with the best possible matches for an internship.
-If the USER PROFILE contains anything that does not match a requirement in the JOB LISTING (i.e. user does not have required education level), give the JOB LISTING a score of 0. If the JOB LISTING contains anything that does not meet a requirement in the USER PROFILE (i.e. the job is remote but user is looking for onsite), give it a lower score, not necessarily 0 but not high either.
-The results must be as catered to the user's needs as possible all the while meeting the internship's requirements.
+    # Now refine these using LLM prompting
+    results = []
+    for sim, internship in top_candidates:
+        job_text = f"{internship['title']} at {internship['company']} located in {internship['location']}. Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}"
+        prompt = f"""
+You are an internship matching AI given a USER PROFILE and JOB LISTING. Analyze and assign a MATCH_SCORE from 0 to 1 based on how suitable this listing is for the user. Take into account GPA, skills, location, education, prior experience, work type, salary, schedule, industry, organization type, timeline, and intended major. Be strict about required qualifications.
 
 USER PROFILE:
 {user_profile_text}
@@ -109,44 +103,53 @@ USER PROFILE:
 JOB LISTING:
 {job_text}
 
-Return output in exactly this format:
-
-MATCH_SCORE: <score between 0 and 1>
-EXTRACTED_GPA: <value or 'No GPA Requirement Listed.'>
-EXTRACTED_EDUCATION: <value or 'No Preferred Education Level Listed'>
-EXTRACTED_SKILLS: <value or 'No required/preferred skills listed.'>
-EXTRACTED_PRIOR_EXPERIENCES: <value or 'No required/preferred prior experiences listed.'>
-EXTRACTED_LOCATION: <value or 'Remote or No Location Listed.'>
-EXTRACTED_SALARY_RANGE: <value or 'Unpaid or No Salary Range Listed.'>
-EXTRACTED_WORK_TYPE: <value>
-EXTRACTED_SCHEDULE: <value>
-EXTRACTED_INDUSTRY: <value>
-EXTRACTED_ORGANIZATION: <value>
-EXTRACTED_TIMELINE: <value or 'No start/end date specified.'>
-EXTRACTED_MAJOR: <value or 'No specific major requirement listed.'>
+MATCH_SCORE:
 """
-    response = co.chat(model="command-r-plus", message=prompt)
-    reply = response.text.strip()
-    try:
-        lines = reply.split("\n")
-        score_line = [l for l in lines if l.startswith("MATCH_SCORE:")][0]
-        score = float(score_line.split(":")[1].strip())
-        score = max(0.0, min(1.0, score))
-        extracted = {}
-        for field in ["EXTRACTED_GPA", "EXTRACTED_EDUCATION", "EXTRACTED_SKILLS",
-                      "EXTRACTED_WORK_TYPE", "EXTRACTED_SCHEDULE", "EXTRACTED_INDUSTRY",
-                      "EXTRACTED_ORGANIZATION", "EXTRACTED_PRIOR_EXPERIENCES",
-                      "EXTRACTED_LOCATION", "EXTRACTED_SALARY_RANGE", "EXTRACTED_TIMELINE",
-                      "EXTRACTED_MAJOR"]:
-            line = [l for l in lines if l.startswith(field)][0]
-            extracted[field] = line.split(":")[1].strip()
-        return score, extracted
-    except:
-        return 0.0, {}
+        response = co.chat(model="command-r-plus", message=prompt)
+        reply = response.text.strip()
+        try:
+            score = float(reply.split()[0])
+            score = max(0.0, min(1.0, score))
+        except:
+            score = 0.0
+        results.append((score, internship))
 
-# UI preserved as is (skipping here to save space — you can copy your same UI code directly)
+    results.sort(reverse=True, key=lambda x: x[0])
+    return results
 
-# Main execution
+# UI section
+st.title("\u273e CareerNodes")
+st.subheader("\u2764 A Graphical Internship Matchmaker Powered by AI")
+
+gpa = st.number_input("GPA", min_value=0.0, max_value=4.0, step=0.01, value=None)
+if gpa == 0.0: gpa = None
+education = st.selectbox("Education Level", ["Choose an option", "High School Junior", "High School Senior", "High School Diploma", "Undergrad Freshman", "Undergrad Sophomore", "Undergrad Junior", "Undergrad Senior", "Bachelor's Degree", "Associates Degree", "Grad Student"])
+school = st.text_input("Current School (College or High School)")
+major = st.text_input("Current Major or Intended Major")
+skills_input = st.text_input("Skills (comma-separated)")
+skills = [s.strip().lower() for s in skills_input.split(",") if s.strip()]
+type_preference = st.selectbox("Work Type", ["Choose an option", "Remote", "On-Site", "Hybrid"])
+location = st.text_input("Preferred Location")
+industry_preference = st.multiselect("Industry", ["Tech", "Finance", "Healthcare", "Education", "Government", "Nonprofit", "Consulting", "Manufacturing", "Media", "Energy", "Legal", "Other"])
+org_type_preference = st.multiselect("Organization Type", ["Startup", "Large Company", "Small Business", "University / Research", "Government Agency", "Nonprofit", "Venture Capital", "Other"])
+schedule_preference = st.selectbox("Schedule", ["Choose an option", "Full-Time", "Part-Time"])
+salary_min = st.number_input("Min Annual Salary ($)", min_value=0, value=None)
+salary_max = st.number_input("Max Annual Salary ($)", min_value=0, value=None)
+if salary_min == 0: salary_min = None
+if salary_max == 0: salary_max = None
+
+use_calendar = st.checkbox("Specify Preferred Internship Timeline", value=False)
+if use_calendar:
+    start_date = st.date_input("Preferred Timeline (Start)", value=datetime.date.today())
+    end_date = st.date_input("Preferred Timeline (End)", value=datetime.date.today() + datetime.timedelta(days=90))
+else:
+    start_date = "No preferred date"
+    end_date = "No preferred date"
+
+resume_file = st.file_uploader("Upload Resume (PDF or TXT)", type=["pdf", "txt"])
+resume_text = extract_text_from_resume(resume_file) if resume_file else ""
+if resume_file: st.success("Resume uploaded!")
+
 if st.button("Find Matches"):
     internships_raw = fetch_internships("internship", location)
     internships = []
@@ -167,42 +170,11 @@ if st.button("Find Matches"):
         "salary_min": salary_min, "salary_max": salary_max,
         "start_date": start_date, "end_date": end_date
     }
-
     profile_text = create_user_profile_text(user_inputs, resume_text)
-    truncated_profile_text = truncate_text(profile_text)
+    st.write("\u2661 AI Matching in Progress...")
 
-    st.write("\u2661 AI Pre-Filtering in Progress...")
+    results = hybrid_analyze(profile_text, internships)
 
-    # Get embeddings for profile and jobs
-    profile_embed = co.embed(texts=[truncated_profile_text], model="embed-english-v3.0").embeddings[0]
-    job_texts = [f"{i['title']} at {i['company']}. {i['description']}" for i in internships]
-    truncated_job_texts = [truncate_text(j) for j in job_texts]
-    job_embeds = co.embed(texts=truncated_job_texts, model="embed-english-v3.0").embeddings
-
-    # Compute cosine similarity quickly
-    def cosine_sim(a, b):
-        a, b = np.array(a), np.array(b)
-        return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
-
-    prelim_results = []
-    for i, job_embed in enumerate(job_embeds):
-        sim = cosine_sim(profile_embed, job_embed)
-        prelim_results.append((sim, internships[i]))
-
-    # Sort prelim results and only fully process top 20
-    prelim_results.sort(reverse=True, key=lambda x: x[0])
-    top_candidates = prelim_results[:20]
-
-    st.write("\u2661 AI Full Matching in Progress...")
-
-    results = []
-    for _, internship in top_candidates:
-        job_text = f"{internship['title']} at {internship['company']} located in {internship['location']}. Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}"
-        score, extracted = analyze_and_score(profile_text, job_text)
-        internship["extracted"] = extracted
-        results.append((score, internship))
-
-    results.sort(reverse=True, key=lambda x: x[0])
     st.subheader("\u2315 Top Matches:")
     for score, internship in results:
         st.markdown(f"**{internship['company']} - {internship['title']}**")
@@ -211,14 +183,12 @@ if st.button("Find Matches"):
         st.write(f"Salary: ${internship['salary_min']} - ${internship['salary_max']}")
         with st.expander("Full Description"):
             st.write(internship['description'])
-        with st.expander("Extracted Details"):
-            for k, v in internship['extracted'].items():
-                st.write(f"{k.replace('EXTRACTED_', '')}: {v}")
         st.write("---")
 
+    # Visualization
     G = nx.Graph()
     G.add_node("You")
-    for score, internship in results[:50]:
+    for score, internship in results:
         node = f"{internship['company']}\n{internship['title']}"
         G.add_node(node)
         G.add_edge("You", node, weight=score)
