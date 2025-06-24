@@ -144,6 +144,70 @@ EXTRACTED_MAJOR: <value or 'No specific major requirement listed.'>
 # UI
 st.markdown("""
 <style>
+/* Remove all focus effects */
+input:focus, select:focus, textarea:focus, button:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: inherit !important;
+}
+
+/* Decorative nodes and neon lines on page margins */
+body::before, body::after {
+    content: '';
+    position: fixed;
+    z-index: 0;
+    pointer-events: none;
+}
+body::before {
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+        /* Neon lines (edges) */
+        linear-gradient(to right, #00d4ffcc 2px, transparent 2px) 0 0/100vw 2px no-repeat,
+        linear-gradient(to right, #ff00ffcc 2px, transparent 2px) 0 100vh/100vw 2px no-repeat,
+        linear-gradient(to bottom, #00ff88cc 2px, transparent 2px) 0 0/2px 100vh no-repeat,
+        linear-gradient(to bottom, #ff00ffcc 2px, transparent 2px) 100vw 0/2px 100vh no-repeat,
+        /* Diagonal neon lines */
+        linear-gradient(45deg, #00d4ff99 1.5px, transparent 1.5px) 0 0/120vw 120vh no-repeat,
+        linear-gradient(-45deg, #ff00ff99 1.5px, transparent 1.5px) 0 0/120vw 120vh no-repeat,
+        /* Nodes (corners and edges) */
+        radial-gradient(circle at 30px 30px, #00d4ff 0 7px, transparent 8px),
+        radial-gradient(circle at calc(100vw - 30px) 30px, #ff00ff 0 7px, transparent 8px),
+        radial-gradient(circle at 30px calc(100vh - 30px), #00ff88 0 7px, transparent 8px),
+        radial-gradient(circle at calc(100vw - 30px) calc(100vh - 30px), #00d4ff 0 7px, transparent 8px),
+        /* More nodes along edges */
+        radial-gradient(circle at 50vw 30px, #00d4ff 0 6px, transparent 7px),
+        radial-gradient(circle at 30px 50vh, #ff00ff 0 6px, transparent 7px),
+        radial-gradient(circle at 50vw calc(100vh - 30px), #00ff88 0 6px, transparent 7px),
+        radial-gradient(circle at calc(100vw - 30px) 50vh, #ff00ff 0 6px, transparent 7px),
+        /* Extra nodes */
+        radial-gradient(circle at 20vw 20vh, #00d4ff 0 5px, transparent 6px),
+        radial-gradient(circle at 80vw 20vh, #ff00ff 0 5px, transparent 6px),
+        radial-gradient(circle at 20vw 80vh, #00ff88 0 5px, transparent 6px),
+        radial-gradient(circle at 80vw 80vh, #00d4ff 0 5px, transparent 6px);
+    opacity: 0.85;
+}
+body::after {
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+        /* Pulsing nodes for extra effect */
+        radial-gradient(circle at 15vw 10vh, #00d4ff88 0 10px, transparent 11px),
+        radial-gradient(circle at 85vw 10vh, #ff00ff88 0 10px, transparent 11px),
+        radial-gradient(circle at 15vw 90vh, #00ff8888 0 10px, transparent 11px),
+        radial-gradient(circle at 85vw 90vh, #00d4ff88 0 10px, transparent 11px);
+    opacity: 0.5;
+    animation: pulseNodes 2.5s infinite alternate;
+}
+@keyframes pulseNodes {
+    0% { opacity: 0.3; }
+    100% { opacity: 0.7; }
+}
+
+/* Ensure all content is above decorations */
+.main, .block-container, .stApp, .stForm, .stTextInput, .stNumberInput, .stSelectbox, .stMultiSelect, .stCheckbox, .stDateInput, .stFileUploader, .stButton, .stExpander, .stIframe, h1, h2, h3, p, div {
+    position: relative;
+    z-index: 1;
+}
+
 /* Main container styling */
 .main .block-container {
     background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
@@ -152,7 +216,7 @@ st.markdown("""
     overflow: visible !important;
 }
 
-/* Cyberpunk margin/corner nodes and subtle grid */
+/* Decorative nodes and edges for borders */
 .main .block-container::before {
     content: '';
     position: fixed;
@@ -163,15 +227,16 @@ st.markdown("""
     pointer-events: none;
     z-index: 1;
     background: 
-        radial-gradient(circle at 30px 30px, #00d4ff 0 7px, transparent 8px),
-        radial-gradient(circle at calc(100vw - 30px) 30px, #ff00ff 0 7px, transparent 8px),
-        radial-gradient(circle at 30px calc(100vh - 30px), #00ff88 0 7px, transparent 8px),
-        radial-gradient(circle at calc(100vw - 30px) calc(100vh - 30px), #00d4ff 0 7px, transparent 8px),
+        radial-gradient(circle at 20px 20px, #00d4ff 2px, transparent 2px),
+        radial-gradient(circle at calc(100% - 20px) 20px, #00d4ff 2px, transparent 2px),
+        radial-gradient(circle at 20px calc(100% - 20px), #00d4ff 2px, transparent 2px),
+        radial-gradient(circle at calc(100% - 20px) calc(100% - 20px), #00d4ff 2px, transparent 2px),
         linear-gradient(90deg, transparent 0%, #00d4ff 1px, transparent 1px) 0 0 / 50px 50px,
         linear-gradient(0deg, transparent 0%, #00d4ff 1px, transparent 1px) 0 0 / 50px 50px;
     opacity: 0.3;
 }
 
+/* Additional corner nodes */
 .main .block-container::after {
     content: '';
     position: fixed;
@@ -187,11 +252,6 @@ st.markdown("""
         radial-gradient(circle at 50px calc(100% - 50px), #00d4ff 3px, transparent 3px),
         radial-gradient(circle at calc(100% - 50px) calc(100% - 50px), #ff00ff 3px, transparent 3px);
     opacity: 0.4;
-}
-
-.main .block-container > * {
-    position: relative;
-    z-index: 2;
 }
 
 /* Title and subtitle styling */
@@ -222,6 +282,7 @@ h3 {
     z-index: 3;
 }
 
+/* Gradient animation for title */
 @keyframes gradientShift {
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -464,12 +525,14 @@ h2 {
     z-index: 3;
 }
 
+/* General text styling */
 p, div {
     color: #e0e0e0 !important;
     position: relative;
     z-index: 3;
 }
 
+/* Scrollbar styling */
 ::-webkit-scrollbar {
     width: 8px;
 }
@@ -485,6 +548,52 @@ p, div {
 
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(45deg, #0099cc, #00d4ff);
+}
+
+/* Ensure dropdown menus are visible */
+.stSelectbox > div > div > div > div {
+    background: rgba(10, 10, 10, 0.95) !important;
+    border: 1px solid #00d4ff !important;
+    border-radius: 8px !important;
+    z-index: 1000 !important;
+    overflow: visible !important;
+}
+
+/* Fix for any hidden elements */
+* {
+    overflow: visible !important;
+}
+
+/* Additional decorative elements */
+.main .block-container::before {
+    content: '';
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 100px;
+    height: 100px;
+    border: 1px solid #00d4ff;
+    border-radius: 50%;
+    opacity: 0.2;
+    animation: pulse 2s infinite;
+}
+
+.main .block-container::after {
+    content: '';
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 80px;
+    height: 80px;
+    border: 1px solid #ff00ff;
+    border-radius: 50%;
+    opacity: 0.2;
+    animation: pulse 2s infinite 1s;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.2; }
+    50% { transform: scale(1.1); opacity: 0.4; }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -589,3 +698,4 @@ if st.button("Find Matches"):
     with open("graph.html", "r", encoding='utf-8') as HtmlFile:
         source_code = HtmlFile.read()
         components.html(source_code, height=650, width=900)
+        
