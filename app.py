@@ -144,14 +144,14 @@ EXTRACTED_MAJOR: <value or 'No specific major requirement listed.'>
 # UI
 st.markdown("""
 <style>
-/* Remove default focus outlines and soften custom focus */
+/* Remove all focus effects */
 input:focus, select:focus, textarea:focus, button:focus {
     outline: none !important;
-    box-shadow: 0 0 6px #00d4ff55 !important;
-    border-color: #00d4ff !important;
+    box-shadow: none !important;
+    border-color: inherit !important;
 }
 
-/* Decorative nodes and edges on page margins */
+/* Decorative nodes and neon lines on page margins */
 body::before, body::after {
     content: '';
     position: fixed;
@@ -161,31 +161,44 @@ body::before, body::after {
 body::before {
     top: 0; left: 0; right: 0; bottom: 0;
     background:
-        /* Edges */
-        linear-gradient(to right, #00d4ff55 2px, transparent 2px) 0 0/100vw 2px no-repeat,
-        linear-gradient(to right, #00d4ff55 2px, transparent 2px) 0 100vh/100vw 2px no-repeat,
-        linear-gradient(to bottom, #00d4ff55 2px, transparent 2px) 0 0/2px 100vh no-repeat,
-        linear-gradient(to bottom, #00d4ff55 2px, transparent 2px) 100vw 0/2px 100vh no-repeat,
-        /* Nodes */
+        /* Neon lines (edges) */
+        linear-gradient(to right, #00d4ffcc 2px, transparent 2px) 0 0/100vw 2px no-repeat,
+        linear-gradient(to right, #ff00ffcc 2px, transparent 2px) 0 100vh/100vw 2px no-repeat,
+        linear-gradient(to bottom, #00ff88cc 2px, transparent 2px) 0 0/2px 100vh no-repeat,
+        linear-gradient(to bottom, #ff00ffcc 2px, transparent 2px) 100vw 0/2px 100vh no-repeat,
+        /* Diagonal neon lines */
+        linear-gradient(45deg, #00d4ff99 1.5px, transparent 1.5px) 0 0/120vw 120vh no-repeat,
+        linear-gradient(-45deg, #ff00ff99 1.5px, transparent 1.5px) 0 0/120vw 120vh no-repeat,
+        /* Nodes (corners and edges) */
         radial-gradient(circle at 30px 30px, #00d4ff 0 7px, transparent 8px),
         radial-gradient(circle at calc(100vw - 30px) 30px, #ff00ff 0 7px, transparent 8px),
         radial-gradient(circle at 30px calc(100vh - 30px), #00ff88 0 7px, transparent 8px),
-        radial-gradient(circle at calc(100vw - 30px) calc(100vh - 30px), #00d4ff 0 7px, transparent 8px);
-    opacity: 0.7;
+        radial-gradient(circle at calc(100vw - 30px) calc(100vh - 30px), #00d4ff 0 7px, transparent 8px),
+        /* More nodes along edges */
+        radial-gradient(circle at 50vw 30px, #00d4ff 0 6px, transparent 7px),
+        radial-gradient(circle at 30px 50vh, #ff00ff 0 6px, transparent 7px),
+        radial-gradient(circle at 50vw calc(100vh - 30px), #00ff88 0 6px, transparent 7px),
+        radial-gradient(circle at calc(100vw - 30px) 50vh, #ff00ff 0 6px, transparent 7px),
+        /* Extra nodes */
+        radial-gradient(circle at 20vw 20vh, #00d4ff 0 5px, transparent 6px),
+        radial-gradient(circle at 80vw 20vh, #ff00ff 0 5px, transparent 6px),
+        radial-gradient(circle at 20vw 80vh, #00ff88 0 5px, transparent 6px),
+        radial-gradient(circle at 80vw 80vh, #00d4ff 0 5px, transparent 6px);
+    opacity: 0.85;
 }
 body::after {
     top: 0; left: 0; right: 0; bottom: 0;
     background:
-        /* Extra pulsing nodes */
-        radial-gradient(circle at 80px 80px, #00d4ff88 0 12px, transparent 13px),
-        radial-gradient(circle at calc(100vw - 80px) 80px, #ff00ff88 0 12px, transparent 13px),
-        radial-gradient(circle at 80px calc(100vh - 80px), #00ff8888 0 12px, transparent 13px),
-        radial-gradient(circle at calc(100vw - 80px) calc(100vh - 80px), #00d4ff88 0 12px, transparent 13px);
-    opacity: 0.4;
+        /* Pulsing nodes for extra effect */
+        radial-gradient(circle at 15vw 10vh, #00d4ff88 0 10px, transparent 11px),
+        radial-gradient(circle at 85vw 10vh, #ff00ff88 0 10px, transparent 11px),
+        radial-gradient(circle at 15vw 90vh, #00ff8888 0 10px, transparent 11px),
+        radial-gradient(circle at 85vw 90vh, #00d4ff88 0 10px, transparent 11px);
+    opacity: 0.5;
     animation: pulseNodes 2.5s infinite alternate;
 }
 @keyframes pulseNodes {
-    0% { opacity: 0.4; }
+    0% { opacity: 0.3; }
     100% { opacity: 0.7; }
 }
 
