@@ -226,14 +226,6 @@ st.markdown("""
         margin: 20px 0 !important;
         box-shadow: 0 4px 15px rgba(0, 212, 255, 0.2) !important;
     }
-    
-    .glass-container {
-        background: rgba(26, 26, 46, 0.8) !important;
-        border-radius: 12px !important;
-        padding: 20px !important;
-        margin: 20px 0 !important;
-        box-shadow: 0 4px 15px rgba(0, 212, 255, 0.2) !important;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -371,8 +363,8 @@ EXPLANATION:
     return results
 
 # UI
-st.title("✎ᝰ. CareerNodes ılıı")
-st.subheader("\u2764 A Graphical Internship Matchmaker Powered by AI ılııl")
+st.title("\u273e CareerNodes")
+st.subheader("\u2764 A Graphical Internship Matchmaker Powered by AI")
 
 gpa = st.number_input("GPA", min_value=0.0, max_value=4.0, step=0.01, value=None)
 if gpa == 0.0: gpa = None
@@ -431,7 +423,7 @@ if st.button("Find Matches"):
 
     # Create and display the network graph
     st.subheader("🕸️ Career Network Visualization")
-    st.markdown('''<div class="graph-container glass-container">''', unsafe_allow_html=True)
+    st.markdown('<div class="graph-container">', unsafe_allow_html=True)
     
     G = nx.Graph()
     G.add_node("You")
@@ -439,44 +431,17 @@ if st.button("Find Matches"):
         node = f"{internship['company']}\n{internship['title']}"
         G.add_node(node)
         G.add_edge("You", node, weight=score)
-    net = Network(height="600px", width="100%", bgcolor="#222222", font_color="white")
+    net = Network(height="600px", width="100%", bgcolor="#222222", font_color="#222222")
     net.from_nx(G)
     net.save_graph("graph.html")
 
     with open("graph.html", "r", encoding='utf-8') as HtmlFile:
         source_code = HtmlFile.read()
-        # Remove any inline border/background on the main div if present
-        for border_color in ['white', 'black', '#fff', '#ffffff', '#000', '#000000']:
-            source_code = source_code.replace(f'border: 1px solid {border_color};', '')
-        # Add a CSS rule to forcibly remove all borders in the graph area
-        custom_css = '''<style>#mynetwork, #mynetwork * { border: none !important; }</style>'''
-        if '<head>' in source_code:
-            source_code = source_code.replace('<head>', '<head>' + custom_css)
-        else:
-            source_code = custom_css + source_code
-        source_code = source_code.replace('background: #222222;', 'background: rgba(26, 26, 46, 0.5);')
-        
-         # NOW WRAP IT IN THE GLASS CONTAINER
-        st.markdown("""
-        <div style="
-            backdrop-filter: blur(15px);
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-            margin-bottom: 20px;
-        ">
-        """, unsafe_allow_html=True)
-        
         components.html(source_code, height=650, width=900)
-        
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    st.markdown('''<div class="graph-container glass-container">''', unsafe_allow_html=True)
+    
+    st.markdown('<div class="graph-container">', unsafe_allow_html=True)
 
     st.subheader("\u2315 Top Matches:")
-
     for score, internship, explanation in results:
         # Create a job card with cyber styling
         st.markdown(f"""
