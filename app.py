@@ -1,3 +1,5 @@
+BEST VERSION SO FAR
+
 import streamlit as st
 import requests
 import os
@@ -10,8 +12,6 @@ import openai
 import numpy as np
 import datetime
 import html
-import networkx as nx
-import time
 
 # Load environment variables
 load_dotenv()
@@ -315,7 +315,7 @@ def hybrid_analyze(user_profile_text, internships):
     for sim, internship in zip(similarities, internships):
         preliminary.append((sim, internship))
     preliminary.sort(reverse=True, key=lambda x: x[0])
-    top_candidates = preliminary[:25]
+    top_candidates = preliminary[:20]
 
     results = []
     for sim, internship in top_candidates:
@@ -353,13 +353,12 @@ JOB LISTING:
 
 EXPLANATION:
 """
-        time.sleep(1)
         explanation_response = openai.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "user", "content": explanation_prompt}]
         )
         explanation = explanation_response.choices[0].message.content.strip()
-        time.sleep(1)
+
         results.append((score, internship, explanation))
 
     results.sort(reverse=True, key=lambda x: x[0])
@@ -451,36 +450,22 @@ if st.button("Find Matches"):
  
         st.markdown('<hr>', unsafe_allow_html=True)
 
+    # Create and display the network graph
     st.subheader("🕸️ Career Network Visualization")
     st.markdown('<div class="graph-container">', unsafe_allow_html=True)
-x
+    
     G = nx.Graph()
-    G.add_node("You", size=30, color="#FF0000")
+    G.add_node("You")
     for score, internship, _ in results:
-        label = f"{internship['company']} - {internship['title']}"
-        G.add_node(label, size=20 + score * 20, color=f"rgba({int(255 - score*200)}, {int(score*200)}, 150, 0.9)")
-        G.add_edge("You", label, value=score*10, length=100*(1-score+0.1))
-
-    net = Network(height="600px", width="100%", bgcolor="#0a0a0a", font_color="#FFFFFF")
+        node = f"{internship['company']}\n{internship['title']}"
+        G.add_node(node)
+        G.add_edge("You", node, weight=score)
+    net = Network(height="600px", width="100%", bgcolor="#222222", font_color="white")
     net.from_nx(G)
-    net.toggle_physics(True)
-    net.set_options("""
-    var options = {
-      "physics": {
-        "forceAtlas2Based": {
-          "gravitationalConstant": -50,
-          "centralGravity": 0.005,
-          "springLength": 180,
-          "springConstant": 0.06
-        },
-        "maxVelocity": 40,
-        "solver": "forceAtlas2Based",
-        "stabilization": {"iterations": 200}
-      }
-    }
-    """)
     net.save_graph("graph.html")
 
-    with open("graph.html", "r", encoding="utf-8") as HtmlFile:
+    with open("graph.html", "r", encoding='utf-8') as HtmlFile:
         source_code = HtmlFile.read()
         components.html(source_code, height=650, width=900)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
