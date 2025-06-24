@@ -78,65 +78,121 @@ def create_user_profile_text(user_inputs, resume_text):
     return "\n".join(profile_parts)
 
 def analyze_and_score(user_profile_text, job_text):
+    prompt = f"""
+You are an internship matching AI given a USER PROFILE and JOB LISTING, and you are tasked with finding the best JOB LISTING matches for the given USER PROFILE.
+
+FIRST, extract from the JOB LISTING (if available):
+- Required or preferred GPA
+- Required or preferred education level
+- Required or preferred skill keywords
+- Required or preferred prior experiences
+- Location (city, state, country)
+- Salary range if paid 
+- Work Type (remote, hybrid, onsite)
+- Schedule (full-time, part-time)
+- Industry category (Tech, Finance, Healthcare, etc.)
+- Organization type (Startup, Large Company, Nonprofit, Government, etc.)
+- Timeline (Start date or month, End date or month)
+- Intended Major or Field of Study
+
+SECOND, compare these extracted attributes against the USER PROFILE. Return a matching score between 0 and 1. 
+In your scoring, truly consider all of the factors that the user provides in the USER PROFILE and how good of a fit you think the internship would be based on what is in the JOB LISTING. Perform a thorough analysis in your scoring with the purpose of providing the user with the best possible matches for an internship.
+If the USER PROFILE contains anything that does not match a requirement in the JOB LISTING (i.e. user does not have required education level), give the JOB LISTING a score of 0. If the JOB LISTING contains anything that does not meet a requirement in the USER PROFILE (i.e. the job is remote but user is looking for onsite), give it a lower score, not necessarily 0 but not high either.
+The results must be as catered to the user's needs as possible all the while meeting the internship's requirements.
+
+USER PROFILE:
+{user_profile_text}
+
+JOB LISTING:
+{job_text}
+
+Return output in exactly this format:
+
+MATCH_SCORE: <score between 0 and 1>
+EXTRACTED_GPA: <value or 'No GPA Requirement Listed.'>
+EXTRACTED_EDUCATION: <value or 'No Preferred Education Level Listed'>
+EXTRACTED_SKILLS: <value or 'No required/preferred skills listed.'>
+EXTRACTED_PRIOR_EXPERIENCES: <value or 'No required/preferred prior experiences listed.'>
+EXTRACTED_LOCATION: <value or 'Remote or No Location Listed.'>
+EXTRACTED_SALARY_RANGE: <value or 'Unpaid or No Salary Range Listed.'>
+EXTRACTED_WORK_TYPE: <value>
+EXTRACTED_SCHEDULE: <value>
+EXTRACTED_INDUSTRY: <value>
+EXTRACTED_ORGANIZATION: <value>
+EXTRACTED_TIMELINE: <value or 'No start/end date specified.'>
+EXTRACTED_MAJOR: <value or 'No specific major requirement listed.'>
+"""
+    response = co.chat(model="command-r-plus", message=prompt)
+    reply = response.text.strip()
     try:
-        rerank_response = co.rerank(
-            model="rerank-english-v2.0",
-            query=user_profile_text,
-            documents=[job_text]
-        )
-        score = rerank_response.results[0].relevance_score
+        lines = reply.split("\n")
+        score_line = [l for l in lines if l.startswith("MATCH_SCORE:")][0]
+        score = float(score_line.split(":")[1].strip())
         score = max(0.0, min(1.0, score))
-
-        extracted = {
-            "EXTRACTED_GPA": "N/A",
-            "EXTRACTED_EDUCATION": "N/A",
-            "EXTRACTED_SKILLS": "N/A",
-            "EXTRACTED_WORK_TYPE": "N/A",
-            "EXTRACTED_SCHEDULE": "N/A",
-            "EXTRACTED_INDUSTRY": "N/A",
-            "EXTRACTED_ORGANIZATION": "N/A",
-            "EXTRACTED_PRIOR_EXPERIENCES": "N/A",
-            "EXTRACTED_LOCATION": "N/A",
-            "EXTRACTED_SALARY_RANGE": "N/A",
-            "EXTRACTED_TIMELINE": "N/A",
-            "EXTRACTED_MAJOR": "N/A"
-        }
-
+        extracted = {}
+        for field in ["EXTRACTED_GPA", "EXTRACTED_EDUCATION", "EXTRACTED_SKILLS",
+                      "EXTRACTED_WORK_TYPE", "EXTRACTED_SCHEDULE", "EXTRACTED_INDUSTRY",
+                      "EXTRACTED_ORGANIZATION", "EXTRACTED_PRIOR_EXPERIENCES",
+                      "EXTRACTED_LOCATION", "EXTRACTED_SALARY_RANGE", "EXTRACTED_TIMELINE",
+                      "EXTRACTED_MAJOR"]:
+            line = [l for l in lines if l.startswith(field)][0]
+            extracted[field] = line.split(":")[1].strip()
         return score, extracted
-    except Exception as e:
-        print("Error during rerank:", e)
+    except:
         return 0.0, {}
 
-# Keep full original UI exactly as you already have it
-# (All the CSS, full Streamlit forms, titles, backgrounds, neon gradients, inputs, etc)
-# Place your full existing UI code here unchanged
+# UI
+st.markdown("""
+<style>
+.stTextInput > div > div > input {
+    color: #808080 !important;
+}
+.stSelectbox > div > div > div {
+    color: #808080 !important;
+}
+.stNumberInput > div > div > input {
+    color: #808080 !important;
+}
+h1 {
+    text-align: center !important;
+}
+h3 {
+    text-align: center !important;
+    font-size: 1.2rem !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
-# Now handle form input (rest of backend logic stays same):
-
-st.title("\u273e CareerNodes ılılı")
-st.subheader("\u2764\ufe0f A Graphical Internship Matchmaker Powered by AI ılılıııı")
+st.title("✎ᝰ. CareerNodes ılıılı")
+st.subheader("❤︎ A Graphical Internship Matchmaker Powered by AIılılıılııılı")
 
 gpa = st.number_input("GPA", min_value=0.0, max_value=4.0, step=0.01, format="%0.2f", value=None)
 if gpa == 0.0:
     gpa = None
 education = st.selectbox("Education Level", [
-    "Choose an option", "High School Junior", "High School Senior", "High School Diploma",
+    "Choose an option",
+    "High School Junior", "High School Senior", "High School Diploma",
     "Undergrad Freshman", "Undergrad Sophomore", "Undergrad Junior",
     "Undergrad Senior", "Bachelor's Degree", "Associates Degree", "Grad Student"])
 school = st.text_input("Current School (College or High School)", placeholder="Type an answer...")
 major = st.text_input("Current Major or Intended Major", placeholder="Type an answer...")
 skills_input = st.text_input("Skills (comma-separated)", placeholder="Type an answer...")
 skills = [s.strip().lower() for s in skills_input.split(",") if s.strip()]
-type_preference = st.selectbox("Work Type", ["Choose an option", "Remote", "On-Site", "Hybrid"])
+type_preference = st.selectbox("Work Type", [
+    "Choose an option",
+    "Remote", "On-Site", "Hybrid"])
 location = st.text_input("Preferred Location", placeholder="Type an answer...")
 industry_preference = st.multiselect("Industry", ["Tech", "Finance", "Healthcare", "Education", "Government", "Nonprofit", "Consulting", "Manufacturing", "Media", "Energy", "Legal", "Other"])
 org_type_preference = st.multiselect("Organization Type", ["Startup", "Large Company", "Small Business", "University / Research", "Government Agency", "Nonprofit", "Venture Capital", "Other"])
-schedule_preference = st.selectbox("Schedule", ["Choose an option", "Full-Time", "Part-Time"])
+schedule_preference = st.selectbox("Schedule", [
+    "Choose an option",
+    "Full-Time", "Part-Time"])
 salary_min = st.number_input("Min Annual Salary ($)", min_value=0, value=None)
 salary_max = st.number_input("Max Annual Salary ($)", min_value=0, value=None)
 if salary_min == 0: salary_min = None
 if salary_max == 0: salary_max = None
 
+# Calendar timeline selection
 use_calendar = st.checkbox("Specify Preferred Internship Timeline", value=False)
 if use_calendar:
     start_date = st.date_input("Preferred Timeline (Start)", value=datetime.date.today())
