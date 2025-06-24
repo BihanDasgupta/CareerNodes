@@ -14,6 +14,221 @@ import html
 # Load environment variables
 load_dotenv()
 
+# Custom CSS for cyber-style UI
+st.markdown("""
+<style>
+    /* Main background and container styling */
+    .main {
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+        color: #e0e0e0;
+    }
+    
+    .stApp {
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+    }
+    
+    /* Title styling with cyber glow effect */
+    h1 {
+        background: linear-gradient(45deg, #00d4ff, #0099cc, #00d4ff);
+        background-size: 200% 200%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: glow 3s ease-in-out infinite alternate;
+        text-align: center;
+        font-weight: bold;
+        text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        margin-bottom: 0.5rem;
+    }
+    
+    @keyframes glow {
+        from { background-position: 0% 50%; }
+        to { background-position: 100% 50%; }
+    }
+    
+    /* Subtitle styling */
+    h3 {
+        color: #00d4ff;
+        text-align: center;
+        font-weight: 300;
+        margin-bottom: 2rem;
+        text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+    }
+    
+    /* Input field styling */
+    .stTextInput > div > div > input,
+    .stNumberInput > div > div > input,
+    .stSelectbox > div > div > select {
+        background: rgba(26, 26, 46, 0.8) !important;
+        border: 2px solid #00d4ff !important;
+        border-radius: 8px !important;
+        color: #e0e0e0 !important;
+        padding: 10px !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .stTextInput > div > div > input:focus,
+    .stNumberInput > div > div > input:focus,
+    .stSelectbox > div > div > select:focus {
+        border-color: #00ffff !important;
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.3) !important;
+        outline: none !important;
+    }
+    
+    /* Button styling */
+    .stButton > button {
+        background: linear-gradient(45deg, #00d4ff, #0099cc) !important;
+        border: none !important;
+        border-radius: 25px !important;
+        color: #0a0a0a !important;
+        font-weight: bold !important;
+        padding: 12px 30px !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3) !important;
+    }
+    
+    .stButton > button:hover {
+        background: linear-gradient(45deg, #00ffff, #00d4ff) !important;
+        box-shadow: 0 6px 20px rgba(0, 255, 255, 0.4) !important;
+        transform: translateY(-2px) !important;
+    }
+    
+    /* File uploader styling */
+    .stFileUploader > div {
+        background: rgba(26, 26, 46, 0.6) !important;
+        border: 2px dashed #00d4ff !important;
+        border-radius: 10px !important;
+        padding: 20px !important;
+    }
+    
+    /* Multiselect styling */
+    .stMultiSelect > div > div > div {
+        background: rgba(26, 26, 46, 0.8) !important;
+        border: 2px solid #00d4ff !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Checkbox styling */
+    .stCheckbox > div > div > div {
+        background: rgba(26, 26, 46, 0.8) !important;
+        border: 2px solid #00d4ff !important;
+        border-radius: 6px !important;
+    }
+    
+    /* Date input styling */
+    .stDateInput > div > div > input {
+        background: rgba(26, 26, 46, 0.8) !important;
+        border: 2px solid #00d4ff !important;
+        border-radius: 8px !important;
+        color: #e0e0e0 !important;
+    }
+    
+    /* Success message styling */
+    .stSuccess {
+        background: rgba(0, 255, 0, 0.1) !important;
+        border: 2px solid #00ff00 !important;
+        border-radius: 8px !important;
+        color: #00ff00 !important;
+    }
+    
+    /* Error message styling */
+    .stError {
+        background: rgba(255, 0, 0, 0.1) !important;
+        border: 2px solid #ff0000 !important;
+        border-radius: 8px !important;
+        color: #ff0000 !important;
+    }
+    
+    /* Expander styling */
+    .streamlit-expanderHeader {
+        background: rgba(26, 26, 46, 0.8) !important;
+        border: 2px solid #00d4ff !important;
+        border-radius: 8px !important;
+        color: #00d4ff !important;
+        font-weight: bold !important;
+    }
+    
+    .streamlit-expanderContent {
+        background: rgba(26, 26, 46, 0.6) !important;
+        border: 1px solid #00d4ff !important;
+        border-radius: 8px !important;
+        margin-top: 5px !important;
+    }
+    
+    /* Job listing cards */
+    .job-card {
+        background: rgba(26, 26, 46, 0.8) !important;
+        border: 2px solid #00d4ff !important;
+        border-radius: 12px !important;
+        padding: 20px !important;
+        margin: 15px 0 !important;
+        box-shadow: 0 4px 15px rgba(0, 212, 255, 0.2) !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .job-card:hover {
+        border-color: #00ffff !important;
+        box-shadow: 0 6px 20px rgba(0, 255, 255, 0.3) !important;
+        transform: translateY(-2px) !important;
+    }
+    
+    /* Score display */
+    .score-display {
+        background: linear-gradient(45deg, #00d4ff, #0099cc) !important;
+        color: #0a0a0a !important;
+        padding: 8px 16px !important;
+        border-radius: 20px !important;
+        font-weight: bold !important;
+        display: inline-block !important;
+        margin: 5px 0 !important;
+    }
+    
+    /* Link styling */
+    a {
+        color: #00d4ff !important;
+        text-decoration: none !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    a:hover {
+        color: #00ffff !important;
+        text-shadow: 0 0 10px rgba(0, 255, 255, 0.5) !important;
+    }
+    
+    /* Divider styling */
+    hr {
+        border: none !important;
+        height: 2px !important;
+        background: linear-gradient(90deg, transparent, #00d4ff, transparent) !important;
+        margin: 20px 0 !important;
+    }
+    
+    /* Loading animation */
+    .loading-text {
+        color: #00d4ff !important;
+        text-align: center !important;
+        font-weight: bold !important;
+        animation: pulse 2s infinite !important;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    
+    /* Graph container styling */
+    .graph-container {
+        background: rgba(26, 26, 46, 0.8) !important;
+        border: 2px solid #00d4ff !important;
+        border-radius: 12px !important;
+        padding: 20px !important;
+        margin: 20px 0 !important;
+        box-shadow: 0 4px 15px rgba(0, 212, 255, 0.2) !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # Load API keys
 if "adzuna" in st.secrets:
     ADZUNA_APP_ID = st.secrets["adzuna"]["app_id"]
@@ -202,42 +417,41 @@ if st.button("Find Matches"):
         "start_date": start_date, "end_date": end_date
     }
     profile_text = create_user_profile_text(user_inputs, resume_text)
-    st.write("\u2661 AI Matching in Progress...")
+    st.markdown('<p class="loading-text">🤖 AI Matching in Progress...</p>', unsafe_allow_html=True)
 
     results = hybrid_analyze(profile_text, internships)
 
     st.subheader("\u2315 Top Matches:")
     for score, internship, explanation in results:
-        st.markdown(f"**{internship['company']} - {internship['title']}**")
-        if internship["redirect_url"]:
-            st.write(f"[View Job Posting]({internship['redirect_url']})")
-        st.write(f"Score: {score:.3f}")
-        st.write(f"Location: {internship['location']}")
-        st.write(f"Salary: ${internship['salary_min']} - ${internship['salary_max']}")
-        st.write(f"Work Type: {type_preference}")
-        st.write(f"Schedule: {schedule_preference}")
-        st.write(f"Industry: {', '.join(industry_preference)}")
-        st.write(f"Org Type: {', '.join(org_type_preference)}")
-    
-        with st.expander("AI Explanation"):
-            st.write(explanation)
-
-        with st.expander("Job Description"):
-            st.markdown(f"<div style='max-height:400px; overflow:auto;'>{internship['description']}</div>", unsafe_allow_html=True)
+        # Create a job card with cyber styling
+        st.markdown(f"""
+        <div class="job-card">
+            <h4 style="color: #00d4ff; margin-bottom: 10px;">{internship['company']} - {internship['title']}</h4>
+            <div class="score-display">Match Score: {score:.3f}</div>
+            <p><strong>Location:</strong> {internship['location']}</p>
+            <p><strong>Salary:</strong> ${internship['salary_min']} - ${internship['salary_max']}</p>
+            <p><strong>Work Type:</strong> {type_preference}</p>
+            <p><strong>Schedule:</strong> {schedule_preference}</p>
+            <p><strong>Industry:</strong> {', '.join(industry_preference)}</p>
+            <p><strong>Org Type:</strong> {', '.join(org_type_preference)}</p>
+        </div>
+        """, unsafe_allow_html=True)
         
-        with st.expander("Job Description"):
-            safe_description = html.escape(internship['description'])
-            st.write(
-                f"""
-                <div style="max-height: 300px; overflow-y: auto; padding-right: 10px; border: 1px solid #ccc;">
-                    <pre>{safe_description}</pre>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+        if internship["redirect_url"]:
+            st.markdown(f'<p><a href="{internship["redirect_url"]}" target="_blank">🔗 View Job Posting</a></p>', unsafe_allow_html=True)
+    
+        with st.expander("🤖 AI Explanation"):
+            st.markdown(f'<div style="background: rgba(26, 26, 46, 0.6); padding: 15px; border-radius: 8px; border-left: 4px solid #00d4ff;">{explanation}</div>', unsafe_allow_html=True)
 
-        st.write("---")
+        with st.expander("📋 Job Description"):
+            st.markdown(f'<div style="max-height:400px; overflow:auto; background: rgba(26, 26, 46, 0.6); padding: 15px; border-radius: 8px; border-left: 4px solid #00d4ff;">{internship["description"]}</div>', unsafe_allow_html=True)
+ 
+        st.markdown('<hr>', unsafe_allow_html=True)
 
+    # Create and display the network graph
+    st.subheader("🕸️ Career Network Visualization")
+    st.markdown('<div class="graph-container">', unsafe_allow_html=True)
+    
     G = nx.Graph()
     G.add_node("You")
     for score, internship, _ in results:
@@ -251,3 +465,5 @@ if st.button("Find Matches"):
     with open("graph.html", "r", encoding='utf-8') as HtmlFile:
         source_code = HtmlFile.read()
         components.html(source_code, height=650, width=900)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
