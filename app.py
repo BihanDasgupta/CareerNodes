@@ -223,16 +223,19 @@ if st.button("Find Matches"):
             st.write(explanation)
 
         with st.expander("Job Description"):
-    safe_description = html.escape(internship['description'])
-    st.write(
-        f"""
-        <div style="max-height: 300px; overflow-y: auto; padding-right: 10px; border: 1px solid #ccc;">
-            <pre>{safe_description}</pre>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    
+            st.markdown(f"<div style='max-height:400px; overflow:auto;'>{internship['description']}</div>", unsafe_allow_html=True)
+        
+        with st.expander("Job Description"):
+            safe_description = html.escape(internship['description'])
+            st.write(
+                f"""
+                <div style="max-height: 300px; overflow-y: auto; padding-right: 10px; border: 1px solid #ccc;">
+                    <pre>{safe_description}</pre>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
         st.write("---")
 
     G = nx.Graph()
