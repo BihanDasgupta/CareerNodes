@@ -313,13 +313,13 @@ def hybrid_analyze(user_profile_text, internships):
     for sim, internship in zip(similarities, internships):
         preliminary.append((sim, internship))
     preliminary.sort(reverse=True, key=lambda x: x[0])
-    top_candidates = preliminary[:10]
+    top_candidates = preliminary[:20]
 
     results = []
     for sim, internship in top_candidates:
         job_text = f"{internship['title']} at {internship['company']} located in {internship['location']}. Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}"
         prompt = f"""
-You are an internship matching AI given a USER PROFILE and JOB LISTING. Analyze and assign a MATCH_SCORE from 0 to 1 based on how suitable this listing is for the user. Take into account the user's GPA, skills, preferred location, education level, prior experience, preferred work type, preferred salary, preferred schedule, preferred industry, preferred organization type, desired timeline, any details from their resume, and current or intended major if provided, and how well that aligns with what both the user and job is looking for and/or requiring. Filter out listings that are not hiring the user's education level. Only output the score.
+You are an internship matching AI given a USER PROFILE and JOB LISTING. Analyze and assign a MATCH_SCORE from 0 to 1 based on how suitable this listing is for the user. Take into account the user's GPA, skills, preferred location, education level, prior experience, preferred work type, preferred salary, preferred schedule, preferred industry, preferred organization type, desired timeline, any details from their resume, and current or intended major if provided, and how well that aligns with what both the user and job is looking for and/or requiring. Only output the score. Do not give any listings 0 unless nothing of the user data matches the job listing.
 
 USER PROFILE:
 {user_profile_text}
