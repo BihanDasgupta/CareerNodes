@@ -9,7 +9,6 @@ import PyPDF2
 import openai
 import numpy as np
 import datetime
-import re
 
 # Load environment variables
 load_dotenv()
@@ -104,61 +103,45 @@ def hybrid_analyze(user_profile_text, internships):
     for sim, internship in top_candidates:
         job_text = f"{internship['title']} at {internship['company']} located in {internship['location']}. Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}"
         prompt = f"""
-You are an internship matching AI given a USER PROFILE and JOB LISTING. Extract the following fields and assign a MATCH_SCORE from 0 to 1.
-
-- Required GPA
-- Required education
-- Required skills
-- Prior experiences
-- Location
-- Salary
-- Work type
-- Schedule
-- Industry
-- Organization type
-- Timeline
-- Major
-
-If user does not meet a strict requirement, assign score 0.0. Otherwise, score from 0 to 1 considering all factors.
-
-Return in this format strictly:
-MATCH_SCORE: <score>
-EXTRACTED_GPA: <value>
-EXTRACTED_EDUCATION: <value>
-EXTRACTED_SKILLS: <value>
-EXTRACTED_PRIOR_EXPERIENCES: <value>
-EXTRACTED_LOCATION: <value>
-EXTRACTED_SALARY: <value>
-EXTRACTED_WORK_TYPE: <value>
-EXTRACTED_SCHEDULE: <value>
-EXTRACTED_INDUSTRY: <value>
-EXTRACTED_ORGANIZATION: <value>
-EXTRACTED_TIMELINE: <value>
-EXTRACTED_MAJOR: <value>
+You are an internship matching AI given a USER PROFILE and JOB LISTING. Analyze and assign a MATCH_SCORE from 0 to 1 based on how suitable this listing is for the user. Take into account GPA, skills, location, education, prior experience, work type, salary, schedule, industry, organization type, timeline, and intended major. Be strict about required qualifications.
 
 USER PROFILE:
 {user_profile_text}
 
 JOB LISTING:
 {job_text}
+
+MATCH_SCORE:
 """
         response = openai.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "user", "content": prompt}]
         )
         reply = response.choices[0].message.content.strip()
+        try:
+            score = float(reply.split()[0])
+            score = max(0.0, min(1.0, score))
+        except:
+            score = 0.0
 
-        score_match = re.search(r"MATCH_SCORE:\s*(\d+(\.\d+)?)", reply)
-        score = float(score_match.group(1)) if score_match else 0.0
+        explanation_prompt = f"""
+You are a career advisor AI. Explain in 2-3 sentences why this job listing is a good match (or not) for the user based on their profile. Be specific, professional, and helpful.
 
-        extracted = {}
-        fields = ["GPA", "EDUCATION", "SKILLS", "PRIOR_EXPERIENCES", "LOCATION", "SALARY", "WORK_TYPE",
-                  "SCHEDULE", "INDUSTRY", "ORGANIZATION", "TIMELINE", "MAJOR"]
-        for field in fields:
-            match = re.search(rf"EXTRACTED_{field}:\s*(.*)", reply)
-            extracted[field] = match.group(1).strip() if match else "Not Found"
+USER PROFILE:
+{user_profile_text}
 
-        results.append((score, internship, extracted))
+JOB LISTING:
+{job_text}
+
+EXPLANATION:
+"""
+        explanation_response = openai.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": explanation_prompt}]
+        )
+        explanation = explanation_response.choices[0].message.content.strip()
+
+        results.append((score, internship, explanation))
 
     results.sort(reverse=True, key=lambda x: x[0])
     return results
@@ -207,6 +190,7 @@ if st.button("Find Matches"):
             "location": job.get("location", {}).get("display_name", "Unknown Location"),
             "salary_min": job.get("salary_min") or 0,
             "salary_max": job.get("salary_max") or 0,
+            "redirect_url": job.get("redirect_url", "")
         })
 
     user_inputs = {
@@ -222,16 +206,19 @@ if st.button("Find Matches"):
     results = hybrid_analyze(profile_text, internships)
 
     st.subheader("\u2315 Top Matches:")
-    for score, internship, extracted in results:
+    for score, internship, explanation in results:
         st.markdown(f"**{internship['company']} - {internship['title']}**")
+        if internship['redirect_url']:
+            st.markdown(f"[View Posting]({internship['redirect_url']})")
         st.write(f"Score: {score:.3f}")
         st.write(f"Location: {internship['location']}")
         st.write(f"Salary: ${internship['salary_min']} - ${internship['salary_max']}")
-        with st.expander("Full Description"):
-            st.write(internship['description'])
-        with st.expander("Extracted Information"):
-            for k, v in extracted.items():
-                st.write(f"{k}: {v}")
+        st.write(f"Work Type: {type_preference}")
+        st.write(f"Schedule: {schedule_preference}")
+        st.write(f"Organization Type: {', '.join(org_type_preference)}")
+        st.write(f"Industry: {', '.join(industry_preference)}")
+        st.write(f"**AI Explanation:** {explanation}")
+        st.markdown("<div style='border:1px solid #ccc;padding:10px;max-height:200px;overflow-y:auto;'>" + internship['description'] + "</div>", unsafe_allow_html=True)
         st.write("---")
 
     G = nx.Graph()
