@@ -142,61 +142,61 @@ EXTRACTED_MAJOR: <value or 'No specific major requirement listed.'>
         return 0.0, {}
 
 # UI
-st.markdown('''
-<div style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:0;">
-<svg width="100%" height="100%" style="position:absolute;top:0;left:0;">
-  <!-- Top left node -->
-  <circle cx="30" cy="30" r="8" fill="#00d4ff" filter="url(#glow1)"/>
-  <!-- Top right node -->
-  <circle cx="calc(100vw - 30)" cy="30" r="8" fill="#ff00ff" filter="url(#glow2)"/>
-  <!-- Bottom left node -->
-  <circle cx="30" cy="calc(100vh - 30)" r="8" fill="#00ff88" filter="url(#glow3)"/>
-  <!-- Bottom right node -->
-  <circle cx="calc(100vw - 30)" cy="calc(100vh - 30)" r="8" fill="#00d4ff" filter="url(#glow1)"/>
-  <!-- Top edge node -->
-  <circle cx="50vw" cy="30" r="6" fill="#00d4ff"/>
-  <!-- Left edge node -->
-  <circle cx="30" cy="50vh" r="6" fill="#ff00ff"/>
-  <!-- Bottom edge node -->
-  <circle cx="50vw" cy="calc(100vh - 30)" r="6" fill="#00ff88"/>
-  <!-- Right edge node -->
-  <circle cx="calc(100vw - 30)" cy="50vh" r="6" fill="#ff00ff"/>
-  <!-- Neon lines -->
-  <line x1="30" y1="30" x2="50vw" y2="30" stroke="#00d4ff" stroke-width="2" filter="url(#glow1)"/>
-  <line x1="50vw" y1="30" x2="calc(100vw - 30)" y2="30" stroke="#00d4ff" stroke-width="2" filter="url(#glow1)"/>
-  <line x1="30" y1="30" x2="30" y2="50vh" stroke="#ff00ff" stroke-width="2" filter="url(#glow2)"/>
-  <line x1="30" y1="50vh" x2="30" y2="calc(100vh - 30)" stroke="#00ff88" stroke-width="2" filter="url(#glow3)"/>
-  <line x1="30" y1="calc(100vh - 30)" x2="50vw" y2="calc(100vh - 30)" stroke="#00ff88" stroke-width="2" filter="url(#glow3)"/>
-  <line x1="50vw" y1="calc(100vh - 30)" x2="calc(100vw - 30)" y2="calc(100vh - 30)" stroke="#00d4ff" stroke-width="2" filter="url(#glow1)"/>
-  <line x1="calc(100vw - 30)" y1="30" x2="calc(100vw - 30)" y2="50vh" stroke="#ff00ff" stroke-width="2" filter="url(#glow2)"/>
-  <line x1="calc(100vw - 30)" y1="50vh" x2="calc(100vw - 30)" y2="calc(100vh - 30)" stroke="#00ff88" stroke-width="2" filter="url(#glow3)"/>
-  <!-- SVG filters for neon glow -->
-  <defs>
-    <filter id="glow1" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-      <feMerge>
-        <feMergeNode in="coloredBlur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-    <filter id="glow2" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-      <feMerge>
-        <feMergeNode in="coloredBlur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-    <filter id="glow3" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-      <feMerge>
-        <feMergeNode in="coloredBlur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  </defs>
-</svg>
-</div>
-''', unsafe_allow_html=True)
+st.markdown("""
+<style>
+/* Remove all focus effects */
+input:focus, select:focus, textarea:focus, button:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: inherit !important;
+}
+
+/* Decorative nodes and neon lines on page margins using CSS */
+.main .block-container::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+    background: 
+        radial-gradient(circle at 30px 30px, #00d4ff 0 7px, transparent 8px),
+        radial-gradient(circle at calc(100vw - 30px) 30px, #ff00ff 0 7px, transparent 8px),
+        radial-gradient(circle at 30px calc(100vh - 30px), #00ff88 0 7px, transparent 8px),
+        radial-gradient(circle at calc(100vw - 30px) calc(100vh - 30px), #00d4ff 0 7px, transparent 8px),
+        linear-gradient(90deg, transparent 0%, #00d4ff 1px, transparent 1px) 0 0 / 50px 50px,
+        linear-gradient(0deg, transparent 0%, #00d4ff 1px, transparent 1px) 0 0 / 50px 50px;
+    opacity: 0.3;
+}
+
+.main .block-container::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+    background: 
+        radial-gradient(circle at 50px 50px, #ff00ff 3px, transparent 3px),
+        radial-gradient(circle at calc(100% - 50px) 50px, #00ff88 3px, transparent 3px),
+        radial-gradient(circle at 50px calc(100% - 50px), #00d4ff 3px, transparent 3px),
+        radial-gradient(circle at calc(100% - 50px) calc(100% - 50px), #ff00ff 3px, transparent 3px);
+    opacity: 0.4;
+}
+
+.main .block-container > * {
+    position: relative;
+    z-index: 2;
+}
+
+/* Keep the rest of your cyber styling here... */
+/* ... existing code ... */
+</style>
+""", unsafe_allow_html=True)
 
 st.title("✎ᝰ. CareerNodes ılıılı")
 st.subheader("❤︎ A Graphical Internship Matchmaker Powered by AI ılılıılııılı")
