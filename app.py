@@ -142,24 +142,32 @@ EXTRACTED_MAJOR: <value or 'No specific major requirement listed.'>
         return 0.0, {}
 
 # UI
-gpa = st.number_input("GPA (Optional)", min_value=0.0, max_value=4.0, step=0.01, format="%0.2f")
+st.title("✎ᝰ. CareerNodes ılıılı")
+st.subheader("ılıılı❤︎ A Graphical Internship Matchmaker Powered by AI ❤︎ılıılı")
+
+gpa = st.number_input("GPA", min_value=0.0, max_value=4.0, step=0.01, format="%0.2f", value=None)
 if gpa == 0.0:
     gpa = None
 education = st.selectbox("Education Level", [
+    "Choose an option",
     "High School Junior", "High School Senior", "High School Diploma",
     "Undergrad Freshman", "Undergrad Sophomore", "Undergrad Junior",
     "Undergrad Senior", "Bachelor's Degree", "Associates Degree", "Grad Student"])
-school = st.text_input("Current School (College or High School)")
-major = st.text_input("Current Major or Intended Major (Optional)")
-skills_input = st.text_input("Skills (comma-separated)")
+school = st.text_input("Current School (College or High School)", placeholder="Type an answer...")
+major = st.text_input("Current Major or Intended Major", placeholder="Type an answer...")
+skills_input = st.text_input("Skills (comma-separated)", placeholder="Type an answer...")
 skills = [s.strip().lower() for s in skills_input.split(",") if s.strip()]
-type_preference = st.selectbox("Work Type", ["Remote", "On-Site", "Hybrid"])
-location = st.text_input("Preferred Location")
+type_preference = st.selectbox("Work Type", [
+    "Choose an option",
+    "Remote", "On-Site", "Hybrid"])
+location = st.text_input("Preferred Location", placeholder="Type an answer...")
 industry_preference = st.multiselect("Industry", ["Tech", "Finance", "Healthcare", "Education", "Government", "Nonprofit", "Consulting", "Manufacturing", "Media", "Energy", "Legal", "Other"])
 org_type_preference = st.multiselect("Organization Type", ["Startup", "Large Company", "Small Business", "University / Research", "Government Agency", "Nonprofit", "Venture Capital", "Other"])
-schedule_preference = st.selectbox("Schedule", ["Full-Time", "Part-Time"])
-salary_min = st.number_input("Min Salary ($, Optional)", min_value=0)
-salary_max = st.number_input("Max Salary ($, Optional)", min_value=0)
+schedule_preference = st.selectbox("Schedule", [
+    "Choose an option",
+    "Full-Time", "Part-Time"])
+salary_min = st.number_input("Min Annual Salary ($)", min_value=0, value=None)
+salary_max = st.number_input("Max Annual Salary ($)", min_value=0, value=None)
 if salary_min == 0: salary_min = None
 if salary_max == 0: salary_max = None
 
