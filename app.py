@@ -142,6 +142,20 @@ EXTRACTED_MAJOR: <value or 'No specific major requirement listed.'>
         return 0.0, {}
 
 # UI
+st.markdown("""
+<style>
+.stTextInput > div > div > input {
+    color: #808080 !important;
+}
+.stSelectbox > div > div > div {
+    color: #808080 !important;
+}
+.stNumberInput > div > div > input {
+    color: #808080 !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 st.title("✎ᝰ. CareerNodes ılıılı")
 st.subheader("ılıılı❤︎ A Graphical Internship Matchmaker Powered by AI ❤︎ılıılı")
 
