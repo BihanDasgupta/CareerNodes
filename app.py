@@ -144,27 +144,264 @@ EXTRACTED_MAJOR: <value or 'No specific major requirement listed.'>
 # UI
 st.markdown("""
 <style>
-.stTextInput > div > div > input {
-    color: #808080 !important;
+/* Main container styling */
+.main .block-container {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+    padding: 2rem;
 }
-.stSelectbox > div > div > div {
-    color: #808080 !important;
-}
-.stNumberInput > div > div > input {
-    color: #808080 !important;
-}
+
+/* Title and subtitle styling */
 h1 {
     text-align: center !important;
+    background: linear-gradient(45deg, #00d4ff, #ff00ff, #00ff88);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 3rem !important;
+    font-weight: 700 !important;
+    text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+    animation: gradientShift 3s ease-in-out infinite;
+    margin-bottom: 0.5rem !important;
 }
+
 h3 {
     text-align: center !important;
-    font-size: 1.2rem !important;
+    font-size: 1.1rem !important;
+    color: #b0b0b0 !important;
+    font-weight: 300 !important;
+    letter-spacing: 2px !important;
+    margin-bottom: 2rem !important;
+}
+
+/* Gradient animation for title */
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+/* Form container styling */
+.stForm {
+    background: rgba(26, 26, 46, 0.8) !important;
+    border: 1px solid #00d4ff !important;
+    border-radius: 15px !important;
+    padding: 2rem !important;
+    backdrop-filter: blur(10px) !important;
+    box-shadow: 0 8px 32px rgba(0, 212, 255, 0.2) !important;
+    margin: 1rem 0 !important;
+}
+
+/* Label styling */
+.stForm label {
+    color: #00d4ff !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    margin-bottom: 0.5rem !important;
+}
+
+/* Text input styling */
+.stTextInput > div > div > input {
+    background: rgba(10, 10, 10, 0.8) !important;
+    border: 2px solid #333 !important;
+    border-radius: 8px !important;
+    color: #e0e0e0 !important;
+    padding: 12px 16px !important;
+    font-size: 0.9rem !important;
+    transition: all 0.3s ease !important;
+}
+
+.stTextInput > div > div > input:focus {
+    border-color: #00d4ff !important;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
+    background: rgba(10, 10, 10, 0.9) !important;
+}
+
+.stTextInput > div > div > input::placeholder {
+    color: #666 !important;
+}
+
+/* Number input styling */
+.stNumberInput > div > div > input {
+    background: rgba(10, 10, 10, 0.8) !important;
+    border: 2px solid #333 !important;
+    border-radius: 8px !important;
+    color: #e0e0e0 !important;
+    padding: 12px 16px !important;
+    font-size: 0.9rem !important;
+    transition: all 0.3s ease !important;
+}
+
+.stNumberInput > div > div > input:focus {
+    border-color: #00d4ff !important;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
+    background: rgba(10, 10, 10, 0.9) !important;
+}
+
+/* Selectbox styling */
+.stSelectbox > div > div > div {
+    background: rgba(10, 10, 10, 0.8) !important;
+    border: 2px solid #333 !important;
+    border-radius: 8px !important;
+    color: #e0e0e0 !important;
+    padding: 12px 16px !important;
+    font-size: 0.9rem !important;
+    transition: all 0.3s ease !important;
+}
+
+.stSelectbox > div > div > div:focus-within {
+    border-color: #00d4ff !important;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
+    background: rgba(10, 10, 10, 0.9) !important;
+}
+
+/* Multiselect styling */
+.stMultiSelect > div > div > div {
+    background: rgba(10, 10, 10, 0.8) !important;
+    border: 2px solid #333 !important;
+    border-radius: 8px !important;
+    color: #e0e0e0 !important;
+    padding: 12px 16px !important;
+    font-size: 0.9rem !important;
+    transition: all 0.3s ease !important;
+}
+
+.stMultiSelect > div > div > div:focus-within {
+    border-color: #00d4ff !important;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
+    background: rgba(10, 10, 10, 0.9) !important;
+}
+
+/* Checkbox styling */
+.stCheckbox > div > div {
+    background: rgba(10, 10, 10, 0.8) !important;
+    border: 2px solid #333 !important;
+    border-radius: 8px !important;
+    padding: 12px 16px !important;
+    transition: all 0.3s ease !important;
+}
+
+.stCheckbox > div > div:focus-within {
+    border-color: #00d4ff !important;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
+}
+
+/* Date input styling */
+.stDateInput > div > div > input {
+    background: rgba(10, 10, 10, 0.8) !important;
+    border: 2px solid #333 !important;
+    border-radius: 8px !important;
+    color: #e0e0e0 !important;
+    padding: 12px 16px !important;
+    font-size: 0.9rem !important;
+    transition: all 0.3s ease !important;
+}
+
+.stDateInput > div > div > input:focus {
+    border-color: #00d4ff !important;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
+    background: rgba(10, 10, 10, 0.9) !important;
+}
+
+/* File uploader styling */
+.stFileUploader > div > div {
+    background: rgba(10, 10, 10, 0.8) !important;
+    border: 2px solid #333 !important;
+    border-radius: 8px !important;
+    padding: 20px !important;
+    transition: all 0.3s ease !important;
+}
+
+.stFileUploader > div > div:hover {
+    border-color: #00d4ff !important;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
+}
+
+/* Button styling */
+.stButton > button {
+    background: linear-gradient(45deg, #00d4ff, #0099cc) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    color: #000 !important;
+    font-weight: 600 !important;
+    padding: 12px 24px !important;
+    font-size: 1rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3) !important;
+}
+
+.stButton > button:hover {
+    background: linear-gradient(45deg, #0099cc, #00d4ff) !important;
+    box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Success message styling */
+.stSuccess {
+    background: rgba(0, 255, 136, 0.1) !important;
+    border: 1px solid #00ff88 !important;
+    border-radius: 8px !important;
+    color: #00ff88 !important;
+    padding: 12px 16px !important;
+}
+
+/* Results styling */
+.stExpander > div > div {
+    background: rgba(26, 26, 46, 0.8) !important;
+    border: 1px solid #333 !important;
+    border-radius: 8px !important;
+    margin: 8px 0 !important;
+}
+
+/* Graph container styling */
+.stIframe {
+    border: 2px solid #00d4ff !important;
+    border-radius: 15px !important;
+    box-shadow: 0 8px 32px rgba(0, 212, 255, 0.2) !important;
+    margin: 2rem 0 !important;
+}
+
+/* Section headers */
+h2 {
+    color: #00d4ff !important;
+    font-size: 1.5rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 2px !important;
+    margin: 2rem 0 1rem 0 !important;
+    text-align: center !important;
+}
+
+/* General text styling */
+p, div {
+    color: #e0e0e0 !important;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(10, 10, 10, 0.8);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #00d4ff, #0099cc);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, #0099cc, #00d4ff);
 }
 </style>
 """, unsafe_allow_html=True)
 
 st.title("✎ᝰ. CareerNodes ılıılı")
-st.subheader("❤︎ A Graphical Internship Matchmaker Powered by AIılılıılııılı")
+st.subheader("❤︎ A Graphical Internship Matchmaker Powered by AI ılılıılııılı")
 
 gpa = st.number_input("GPA", min_value=0.0, max_value=4.0, step=0.01, format="%0.2f", value=None)
 if gpa == 0.0:
