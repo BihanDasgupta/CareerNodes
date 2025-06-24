@@ -7,6 +7,7 @@ import streamlit.components.v1 as components
 from dotenv import load_dotenv
 import PyPDF2
 import cohere
+import numpy as np
 import datetime
 
 # Load environment variables
@@ -76,50 +77,57 @@ def create_user_profile_text(user_inputs, resume_text):
     ]
     return "\n".join(profile_parts)
 
-def rerank_jobs(user_profile_text, job_list):
-    # Prepare documents for rerank
-    documents = []
-    job_mapping = {}
-    for idx, job in enumerate(job_list):
-        job_text = f"{job['title']} at {job['company']} located in {job['location']}. Description: {job['description']} Salary Range: ${job['salary_min']}-${job['salary_max']}"
-        documents.append(job_text)
-        job_mapping[idx] = job
-    
-    rerank_response = co.rerank(
-        model="rerank-english-v3.0",
-        query=user_profile_text,
-        documents=documents,
-        top_n=len(documents)
-    )
+def analyze_and_score(user_profile_text, job_text):
+    try:
+        rerank_response = co.rerank(
+            model="rerank-english-v2.0",
+            query=user_profile_text,
+            documents=[job_text]
+        )
+        score = rerank_response.results[0].relevance_score
+        score = max(0.0, min(1.0, score))
 
-    reranked_results = []
-    for item in rerank_response.results:
-        score = item['relevance_score'] / 100  # Cohere returns 0-100, normalize to 0-1
-        job = job_mapping[item['index']]
-        reranked_results.append((score, job))
-    return reranked_results
+        extracted = {
+            "EXTRACTED_GPA": "N/A",
+            "EXTRACTED_EDUCATION": "N/A",
+            "EXTRACTED_SKILLS": "N/A",
+            "EXTRACTED_WORK_TYPE": "N/A",
+            "EXTRACTED_SCHEDULE": "N/A",
+            "EXTRACTED_INDUSTRY": "N/A",
+            "EXTRACTED_ORGANIZATION": "N/A",
+            "EXTRACTED_PRIOR_EXPERIENCES": "N/A",
+            "EXTRACTED_LOCATION": "N/A",
+            "EXTRACTED_SALARY_RANGE": "N/A",
+            "EXTRACTED_TIMELINE": "N/A",
+            "EXTRACTED_MAJOR": "N/A"
+        }
 
-# Preserve full UI exactly as you built
+        return score, extracted
+    except Exception as e:
+        print("Error during rerank:", e)
+        return 0.0, {}
 
-# (The entire giant CSS block you have above remains 100% untouched)
+# Keep full original UI exactly as you already have it
+# (All the CSS, full Streamlit forms, titles, backgrounds, neon gradients, inputs, etc)
+# Place your full existing UI code here unchanged
 
-# UI rendering below
-st.title("\u272e CareerNodes ılıılı")
-st.subheader("❤︎ A Graphical Internship Matchmaker Powered by AI ılılıılııılı")
+# Now handle form input (rest of backend logic stays same):
+
+st.title("\u273e CareerNodes ılılı")
+st.subheader("\u2764\ufe0f A Graphical Internship Matchmaker Powered by AI ılılıııı")
 
 gpa = st.number_input("GPA", min_value=0.0, max_value=4.0, step=0.01, format="%0.2f", value=None)
-if gpa == 0.0: gpa = None
+if gpa == 0.0:
+    gpa = None
 education = st.selectbox("Education Level", [
-    "Choose an option",
-    "High School Junior", "High School Senior", "High School Diploma",
+    "Choose an option", "High School Junior", "High School Senior", "High School Diploma",
     "Undergrad Freshman", "Undergrad Sophomore", "Undergrad Junior",
     "Undergrad Senior", "Bachelor's Degree", "Associates Degree", "Grad Student"])
 school = st.text_input("Current School (College or High School)", placeholder="Type an answer...")
 major = st.text_input("Current Major or Intended Major", placeholder="Type an answer...")
 skills_input = st.text_input("Skills (comma-separated)", placeholder="Type an answer...")
 skills = [s.strip().lower() for s in skills_input.split(",") if s.strip()]
-type_preference = st.selectbox("Work Type", [
-    "Choose an option", "Remote", "On-Site", "Hybrid"])
+type_preference = st.selectbox("Work Type", ["Choose an option", "Remote", "On-Site", "Hybrid"])
 location = st.text_input("Preferred Location", placeholder="Type an answer...")
 industry_preference = st.multiselect("Industry", ["Tech", "Finance", "Healthcare", "Education", "Government", "Nonprofit", "Consulting", "Manufacturing", "Media", "Energy", "Legal", "Other"])
 org_type_preference = st.multiselect("Organization Type", ["Startup", "Large Company", "Small Business", "University / Research", "Government Agency", "Nonprofit", "Venture Capital", "Other"])
@@ -165,11 +173,15 @@ if st.button("Find Matches"):
     profile_text = create_user_profile_text(user_inputs, resume_text)
     st.write("\u2661 AI Matching in Progress...")
 
-    results = rerank_jobs(profile_text, internships)
+    results = []
+    for internship in internships:
+        job_text = f"{internship['title']} at {internship['company']} located in {internship['location']}. Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}"
+        score, extracted = analyze_and_score(profile_text, job_text)
+        internship["extracted"] = extracted
+        results.append((score, internship))
 
     results.sort(reverse=True, key=lambda x: x[0])
     st.subheader("\u2315 Top Matches:")
-
     for score, internship in results:
         st.markdown(f"**{internship['company']} - {internship['title']}**")
         st.write(f"Score: {score:.3f}")
@@ -177,9 +189,11 @@ if st.button("Find Matches"):
         st.write(f"Salary: ${internship['salary_min']} - ${internship['salary_max']}")
         with st.expander("Full Description"):
             st.write(internship['description'])
+        with st.expander("Extracted Details"):
+            for k,v in internship['extracted'].items():
+                st.write(f"{k.replace('EXTRACTED_', '')}: {v}")
         st.write("---")
 
-    # Draw graph
     G = nx.Graph()
     G.add_node("You")
     for score, internship in results[:50]:
