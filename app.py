@@ -148,6 +148,52 @@ st.markdown("""
 .main .block-container {
     background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
     padding: 2rem;
+    position: relative;
+    overflow: visible !important;
+}
+
+/* Decorative nodes and edges for borders */
+.main .block-container::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+    background: 
+        radial-gradient(circle at 20px 20px, #00d4ff 2px, transparent 2px),
+        radial-gradient(circle at calc(100% - 20px) 20px, #00d4ff 2px, transparent 2px),
+        radial-gradient(circle at 20px calc(100% - 20px), #00d4ff 2px, transparent 2px),
+        radial-gradient(circle at calc(100% - 20px) calc(100% - 20px), #00d4ff 2px, transparent 2px),
+        linear-gradient(90deg, transparent 0%, #00d4ff 1px, transparent 1px) 0 0 / 50px 50px,
+        linear-gradient(0deg, transparent 0%, #00d4ff 1px, transparent 1px) 0 0 / 50px 50px;
+    opacity: 0.3;
+}
+
+/* Additional corner nodes */
+.main .block-container::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+    background: 
+        radial-gradient(circle at 50px 50px, #ff00ff 3px, transparent 3px),
+        radial-gradient(circle at calc(100% - 50px) 50px, #00ff88 3px, transparent 3px),
+        radial-gradient(circle at 50px calc(100% - 50px), #00d4ff 3px, transparent 3px),
+        radial-gradient(circle at calc(100% - 50px) calc(100% - 50px), #ff00ff 3px, transparent 3px);
+    opacity: 0.4;
+}
+
+/* Ensure content is above decorative elements */
+.main .block-container > * {
+    position: relative;
+    z-index: 2;
 }
 
 /* Title and subtitle styling */
@@ -163,6 +209,8 @@ h1 {
     text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
     animation: gradientShift 3s ease-in-out infinite;
     margin-bottom: 0.5rem !important;
+    position: relative;
+    z-index: 3;
 }
 
 h3 {
@@ -172,6 +220,8 @@ h3 {
     font-weight: 300 !important;
     letter-spacing: 2px !important;
     margin-bottom: 2rem !important;
+    position: relative;
+    z-index: 3;
 }
 
 /* Gradient animation for title */
@@ -182,13 +232,16 @@ h3 {
 
 /* Form container styling */
 .stForm {
-    background: rgba(26, 26, 46, 0.8) !important;
+    background: rgba(26, 26, 46, 0.9) !important;
     border: 1px solid #00d4ff !important;
     border-radius: 15px !important;
     padding: 2rem !important;
     backdrop-filter: blur(10px) !important;
     box-shadow: 0 8px 32px rgba(0, 212, 255, 0.2) !important;
     margin: 1rem 0 !important;
+    position: relative;
+    z-index: 3;
+    overflow: visible !important;
 }
 
 /* Label styling */
@@ -199,23 +252,29 @@ h3 {
     text-transform: uppercase !important;
     letter-spacing: 1px !important;
     margin-bottom: 0.5rem !important;
+    position: relative;
+    z-index: 4;
 }
 
 /* Text input styling */
 .stTextInput > div > div > input {
-    background: rgba(10, 10, 10, 0.8) !important;
+    background: rgba(10, 10, 10, 0.9) !important;
     border: 2px solid #333 !important;
     border-radius: 8px !important;
     color: #e0e0e0 !important;
     padding: 12px 16px !important;
     font-size: 0.9rem !important;
     transition: all 0.3s ease !important;
+    position: relative;
+    z-index: 4;
+    overflow: visible !important;
 }
 
 .stTextInput > div > div > input:focus {
     border-color: #00d4ff !important;
     box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
-    background: rgba(10, 10, 10, 0.9) !important;
+    background: rgba(10, 10, 10, 0.95) !important;
+    z-index: 5;
 }
 
 .stTextInput > div > div > input::placeholder {
@@ -224,62 +283,77 @@ h3 {
 
 /* Number input styling */
 .stNumberInput > div > div > input {
-    background: rgba(10, 10, 10, 0.8) !important;
+    background: rgba(10, 10, 10, 0.9) !important;
     border: 2px solid #333 !important;
     border-radius: 8px !important;
     color: #e0e0e0 !important;
     padding: 12px 16px !important;
     font-size: 0.9rem !important;
     transition: all 0.3s ease !important;
+    position: relative;
+    z-index: 4;
+    overflow: visible !important;
 }
 
 .stNumberInput > div > div > input:focus {
     border-color: #00d4ff !important;
     box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
-    background: rgba(10, 10, 10, 0.9) !important;
+    background: rgba(10, 10, 10, 0.95) !important;
+    z-index: 5;
 }
 
 /* Selectbox styling */
 .stSelectbox > div > div > div {
-    background: rgba(10, 10, 10, 0.8) !important;
+    background: rgba(10, 10, 10, 0.9) !important;
     border: 2px solid #333 !important;
     border-radius: 8px !important;
     color: #e0e0e0 !important;
     padding: 12px 16px !important;
     font-size: 0.9rem !important;
     transition: all 0.3s ease !important;
+    position: relative;
+    z-index: 4;
+    overflow: visible !important;
 }
 
 .stSelectbox > div > div > div:focus-within {
     border-color: #00d4ff !important;
     box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
-    background: rgba(10, 10, 10, 0.9) !important;
+    background: rgba(10, 10, 10, 0.95) !important;
+    z-index: 5;
 }
 
 /* Multiselect styling */
 .stMultiSelect > div > div > div {
-    background: rgba(10, 10, 10, 0.8) !important;
+    background: rgba(10, 10, 10, 0.9) !important;
     border: 2px solid #333 !important;
     border-radius: 8px !important;
     color: #e0e0e0 !important;
     padding: 12px 16px !important;
     font-size: 0.9rem !important;
     transition: all 0.3s ease !important;
+    position: relative;
+    z-index: 4;
+    overflow: visible !important;
 }
 
 .stMultiSelect > div > div > div:focus-within {
     border-color: #00d4ff !important;
     box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
-    background: rgba(10, 10, 10, 0.9) !important;
+    background: rgba(10, 10, 10, 0.95) !important;
+    z-index: 5;
 }
 
 /* Checkbox styling */
 .stCheckbox > div > div {
-    background: rgba(10, 10, 10, 0.8) !important;
+    background: rgba(10, 10, 10, 0.9) !important;
     border: 2px solid #333 !important;
     border-radius: 8px !important;
     padding: 12px 16px !important;
     transition: all 0.3s ease !important;
+    position: relative;
+    z-index: 4;
+    overflow: visible !important;
 }
 
 .stCheckbox > div > div:focus-within {
@@ -289,28 +363,35 @@ h3 {
 
 /* Date input styling */
 .stDateInput > div > div > input {
-    background: rgba(10, 10, 10, 0.8) !important;
+    background: rgba(10, 10, 10, 0.9) !important;
     border: 2px solid #333 !important;
     border-radius: 8px !important;
     color: #e0e0e0 !important;
     padding: 12px 16px !important;
     font-size: 0.9rem !important;
     transition: all 0.3s ease !important;
+    position: relative;
+    z-index: 4;
+    overflow: visible !important;
 }
 
 .stDateInput > div > div > input:focus {
     border-color: #00d4ff !important;
     box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
-    background: rgba(10, 10, 10, 0.9) !important;
+    background: rgba(10, 10, 10, 0.95) !important;
+    z-index: 5;
 }
 
 /* File uploader styling */
 .stFileUploader > div > div {
-    background: rgba(10, 10, 10, 0.8) !important;
+    background: rgba(10, 10, 10, 0.9) !important;
     border: 2px solid #333 !important;
     border-radius: 8px !important;
     padding: 20px !important;
     transition: all 0.3s ease !important;
+    position: relative;
+    z-index: 4;
+    overflow: visible !important;
 }
 
 .stFileUploader > div > div:hover {
@@ -331,6 +412,8 @@ h3 {
     letter-spacing: 1px !important;
     transition: all 0.3s ease !important;
     box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3) !important;
+    position: relative;
+    z-index: 4;
 }
 
 .stButton > button:hover {
@@ -346,14 +429,19 @@ h3 {
     border-radius: 8px !important;
     color: #00ff88 !important;
     padding: 12px 16px !important;
+    position: relative;
+    z-index: 4;
 }
 
 /* Results styling */
 .stExpander > div > div {
-    background: rgba(26, 26, 46, 0.8) !important;
+    background: rgba(26, 26, 46, 0.9) !important;
     border: 1px solid #333 !important;
     border-radius: 8px !important;
     margin: 8px 0 !important;
+    position: relative;
+    z-index: 4;
+    overflow: visible !important;
 }
 
 /* Graph container styling */
@@ -362,6 +450,8 @@ h3 {
     border-radius: 15px !important;
     box-shadow: 0 8px 32px rgba(0, 212, 255, 0.2) !important;
     margin: 2rem 0 !important;
+    position: relative;
+    z-index: 4;
 }
 
 /* Section headers */
@@ -373,11 +463,15 @@ h2 {
     letter-spacing: 2px !important;
     margin: 2rem 0 1rem 0 !important;
     text-align: center !important;
+    position: relative;
+    z-index: 3;
 }
 
 /* General text styling */
 p, div {
     color: #e0e0e0 !important;
+    position: relative;
+    z-index: 3;
 }
 
 /* Scrollbar styling */
@@ -396,6 +490,52 @@ p, div {
 
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(45deg, #0099cc, #00d4ff);
+}
+
+/* Ensure dropdown menus are visible */
+.stSelectbox > div > div > div > div {
+    background: rgba(10, 10, 10, 0.95) !important;
+    border: 1px solid #00d4ff !important;
+    border-radius: 8px !important;
+    z-index: 1000 !important;
+    overflow: visible !important;
+}
+
+/* Fix for any hidden elements */
+* {
+    overflow: visible !important;
+}
+
+/* Additional decorative elements */
+.main .block-container::before {
+    content: '';
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 100px;
+    height: 100px;
+    border: 1px solid #00d4ff;
+    border-radius: 50%;
+    opacity: 0.2;
+    animation: pulse 2s infinite;
+}
+
+.main .block-container::after {
+    content: '';
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 80px;
+    height: 80px;
+    border: 1px solid #ff00ff;
+    border-radius: 50%;
+    opacity: 0.2;
+    animation: pulse 2s infinite 1s;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.2; }
+    50% { transform: scale(1.1); opacity: 0.4; }
 }
 </style>
 """, unsafe_allow_html=True)
