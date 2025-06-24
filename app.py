@@ -10,7 +10,7 @@ import openai
 import numpy as np
 import datetime
 import html
-from pyvis.network import Network
+import networkx as nx
 import time
 
 # Load environment variables
@@ -451,7 +451,10 @@ if st.button("Find Matches"):
  
         st.markdown('<hr>', unsafe_allow_html=True)
 
-   G = nx.Graph()
+st.subheader("🕸️ Career Network Visualization")
+st.markdown('<div class="graph-container">', unsafe_allow_html=True)
+
+G = nx.Graph()
 G.add_node("You", size=30, color="#FF0000")
 
 for score, internship, _ in results:
