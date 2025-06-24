@@ -9,6 +9,7 @@ import PyPDF2
 import openai
 import numpy as np
 import datetime
+import html
 
 # Load environment variables
 load_dotenv()
@@ -103,7 +104,7 @@ def hybrid_analyze(user_profile_text, internships):
     for sim, internship in top_candidates:
         job_text = f"{internship['title']} at {internship['company']} located in {internship['location']}. Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}"
         prompt = f"""
-You are an internship matching AI given a USER PROFILE and JOB LISTING. Analyze and assign a MATCH_SCORE from 0 to 1 based on how suitable this listing is for the user. Take into account the user's GPA, skills, preferred location, education level, prior experience, preferred work type, preferred salary, preferred schedule, preferred industry, preferred organization type, desired timeline, any details from their resume, and current or intended major if provided, and how well that aligns with what both the user and job is looking for and/or requiring. Only output the score.
+You are an internship matching AI given a USER PROFILE and JOB LISTING. Analyze and assign a MATCH_SCORE from 0 to 1 based on how suitable this listing is for the user. Take into account the user's GPA, skills, preferred location, education level, prior experience, preferred work type, preferred salary, preferred schedule, preferred industry, preferred organization type, desired timeline, any details from their resume, and current or intended major if provided, and how well that aligns with what both the user and job is looking for and/or requiring. Filter out listings that are not hiring the user's education level. Only output the score.
 
 USER PROFILE:
 {user_profile_text}
@@ -222,8 +223,16 @@ if st.button("Find Matches"):
             st.write(explanation)
 
         with st.expander("Job Description"):
-            st.markdown(f"<div style='max-height:400px; overflow:auto;'>{internship['description']}</div>", unsafe_allow_html=True)
-        
+    safe_description = html.escape(internship['description'])
+    st.write(
+        f"""
+        <div style="max-height: 300px; overflow-y: auto; padding-right: 10px; border: 1px solid #ccc;">
+            <pre>{safe_description}</pre>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
         st.write("---")
 
     G = nx.Graph()
