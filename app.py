@@ -10,6 +10,7 @@ import openai
 import numpy as np
 import datetime
 import html
+import math
 
 # Load environment variables
 load_dotenv()
@@ -432,17 +433,29 @@ if st.button("Find Matches"):
 
     # Parameters for positioning
     max_radius = 400  # max distance in px
-    angle_step = 360 / len(results)
+    min_radius = 80   # minimum distance for the highest score
+    scores = [score for score, _, _ in results]
+    if scores:
+        max_score = max(scores)
+        min_score = min(scores)
+    else:
+        max_score = 1
+        min_score = 0
+    angle_step = 360 / len(results) if results else 1
 
     for i, (score, internship, _) in enumerate(results):
-        # Compute radius based on score
-        radius = max_radius * (1 - score)
+        # Normalize score so that highest score is closest (min_radius), lowest is farthest (max_radius)
+        if max_score != min_score:
+            norm = (score - min_score) / (max_score - min_score)
+        else:
+            norm = 1  # If all scores are the same
+        radius = min_radius + (1 - norm) * (max_radius - min_radius)
         angle_deg = i * angle_step
         angle_rad = math.radians(angle_deg)
         x = radius * math.cos(angle_rad)
         y = radius * math.sin(angle_rad)
 
-        node_label = f"{internship['company']} - {internship['title']}"
+        node_label = f"{internship['company']} - {internship['title']}\nScore: {score:.3f}"
         node_color = f"rgba({int(255 - score*200)}, {int(score*200)}, 150, 0.9)"
         G.add_node(node_label, label=node_label, color=node_color, size=20 + score*20, x=x, y=y, physics=False)
         G.add_edge("You", node_label, color="#00d4ff", value=score*5)
