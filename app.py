@@ -103,7 +103,7 @@ def hybrid_analyze(user_profile_text, internships):
     for sim, internship in top_candidates:
         job_text = f"{internship['title']} at {internship['company']} located in {internship['location']}. Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}"
         prompt = f"""
-You are an internship matching AI given a USER PROFILE and JOB LISTING. Analyze and assign a MATCH_SCORE from 0 to 1 based on how suitable this listing is for the user. Take into account GPA, skills, location, education, prior experience, work type, salary, schedule, industry, organization type, timeline, and intended major. Be strict about required qualifications. Only output the score.
+You are an internship matching AI given a USER PROFILE and JOB LISTING. Analyze and assign a MATCH_SCORE from 0 to 1 based on how suitable this listing is for the user. Take into account the user's GPA, skills, preferred location, education level, prior experience, preferred work type, preferred salary, preferred schedule, preferred industry, preferred organization type, desired timeline, any details from their resume, and current or intended major if provided, and how well that aligns with what both the user and job is looking for and/or requiring. Only output the score.
 
 USER PROFILE:
 {user_profile_text}
@@ -217,12 +217,13 @@ if st.button("Find Matches"):
         st.write(f"Schedule: {schedule_preference}")
         st.write(f"Industry: {', '.join(industry_preference)}")
         st.write(f"Org Type: {', '.join(org_type_preference)}")
-        
+    
+        with st.expander("AI Explanation"):
+            st.write(explanation)
+
         with st.expander("Job Description"):
             st.markdown(f"<div style='max-height:400px; overflow:auto;'>{internship['description']}</div>", unsafe_allow_html=True)
         
-        with st.expander("AI Explanation"):
-            st.write(explanation)
         st.write("---")
 
     G = nx.Graph()
