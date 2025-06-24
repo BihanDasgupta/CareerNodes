@@ -9,6 +9,7 @@ import PyPDF2
 import openai
 import numpy as np
 import datetime
+import re
 
 # Load environment variables
 load_dotenv()
@@ -103,27 +104,61 @@ def hybrid_analyze(user_profile_text, internships):
     for sim, internship in top_candidates:
         job_text = f"{internship['title']} at {internship['company']} located in {internship['location']}. Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}"
         prompt = f"""
-You are an internship matching AI given a USER PROFILE and JOB LISTING. Analyze and assign a MATCH_SCORE from 0 to 1 based on how suitable this listing is for the user. Take into account GPA, skills, location, education, prior experience, work type, salary, schedule, industry, organization type, timeline, and intended major. Be strict about required qualifications.
+You are an internship matching AI given a USER PROFILE and JOB LISTING. Extract the following fields and assign a MATCH_SCORE from 0 to 1.
+
+- Required GPA
+- Required education
+- Required skills
+- Prior experiences
+- Location
+- Salary
+- Work type
+- Schedule
+- Industry
+- Organization type
+- Timeline
+- Major
+
+If user does not meet a strict requirement, assign score 0.0. Otherwise, score from 0 to 1 considering all factors.
+
+Return in this format strictly:
+MATCH_SCORE: <score>
+EXTRACTED_GPA: <value>
+EXTRACTED_EDUCATION: <value>
+EXTRACTED_SKILLS: <value>
+EXTRACTED_PRIOR_EXPERIENCES: <value>
+EXTRACTED_LOCATION: <value>
+EXTRACTED_SALARY: <value>
+EXTRACTED_WORK_TYPE: <value>
+EXTRACTED_SCHEDULE: <value>
+EXTRACTED_INDUSTRY: <value>
+EXTRACTED_ORGANIZATION: <value>
+EXTRACTED_TIMELINE: <value>
+EXTRACTED_MAJOR: <value>
 
 USER PROFILE:
 {user_profile_text}
 
 JOB LISTING:
 {job_text}
-
-MATCH_SCORE:
 """
         response = openai.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "user", "content": prompt}]
         )
         reply = response.choices[0].message.content.strip()
-        try:
-            score = float(reply.split()[0])
-            score = max(0.0, min(1.0, score))
-        except:
-            score = 0.0
-        results.append((score, internship))
+
+        score_match = re.search(r"MATCH_SCORE:\s*(\d+(\.\d+)?)", reply)
+        score = float(score_match.group(1)) if score_match else 0.0
+
+        extracted = {}
+        fields = ["GPA", "EDUCATION", "SKILLS", "PRIOR_EXPERIENCES", "LOCATION", "SALARY", "WORK_TYPE",
+                  "SCHEDULE", "INDUSTRY", "ORGANIZATION", "TIMELINE", "MAJOR"]
+        for field in fields:
+            match = re.search(rf"EXTRACTED_{field}:\s*(.*)", reply)
+            extracted[field] = match.group(1).strip() if match else "Not Found"
+
+        results.append((score, internship, extracted))
 
     results.sort(reverse=True, key=lambda x: x[0])
     return results
@@ -187,18 +222,21 @@ if st.button("Find Matches"):
     results = hybrid_analyze(profile_text, internships)
 
     st.subheader("\u2315 Top Matches:")
-    for score, internship in results:
+    for score, internship, extracted in results:
         st.markdown(f"**{internship['company']} - {internship['title']}**")
         st.write(f"Score: {score:.3f}")
         st.write(f"Location: {internship['location']}")
         st.write(f"Salary: ${internship['salary_min']} - ${internship['salary_max']}")
         with st.expander("Full Description"):
             st.write(internship['description'])
+        with st.expander("Extracted Information"):
+            for k, v in extracted.items():
+                st.write(f"{k}: {v}")
         st.write("---")
 
     G = nx.Graph()
     G.add_node("You")
-    for score, internship in results:
+    for score, internship, _ in results:
         node = f"{internship['company']}\n{internship['title']}"
         G.add_node(node)
         G.add_edge("You", node, weight=score)
