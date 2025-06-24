@@ -455,6 +455,20 @@ if st.button("Find Matches"):
         else:
             source_code = custom_css + source_code
         source_code = source_code.replace('background: #222222;', 'background: rgba(26, 26, 46, 0.5);')
+        
+         # NOW WRAP IT IN THE GLASS CONTAINER
+        st.markdown("""
+        <div style="
+            backdrop-filter: blur(15px);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+            margin-bottom: 20px;
+        ">
+        """, unsafe_allow_html=True)
+        
         components.html(source_code, height=650, width=900)
         
     st.markdown('</div>', unsafe_allow_html=True)
