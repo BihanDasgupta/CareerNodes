@@ -103,7 +103,7 @@ def hybrid_analyze(user_profile_text, internships):
     for sim, internship in top_candidates:
         job_text = f"{internship['title']} at {internship['company']} located in {internship['location']}. Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}"
         prompt = f"""
-You are an internship matching AI given a USER PROFILE and JOB LISTING. Analyze and assign a MATCH_SCORE from 0 to 1 based on how suitable this listing is for the user. Take into account GPA, skills, location, education, prior experience, work type, salary, schedule, industry, organization type, timeline, and intended major. Be strict about required qualifications.
+You are an internship matching AI given a USER PROFILE and JOB LISTING. Analyze and assign a MATCH_SCORE from 0 to 1 based on how suitable this listing is for the user. Take into account GPA, skills, location, education, prior experience, work type, salary, schedule, industry, organization type, timeline, and intended major. Be strict about required qualifications. Only output the score.
 
 USER PROFILE:
 {user_profile_text}
@@ -122,10 +122,10 @@ MATCH_SCORE:
             score = float(reply.split()[0])
             score = max(0.0, min(1.0, score))
         except:
-            score = 0.0
+            score = 0.5  # Default to neutral if parsing fails
 
         explanation_prompt = f"""
-You are a career advisor AI. Explain in 2-3 sentences why this job listing is a good match (or not) for the user based on their profile. Be specific, professional, and helpful.
+You are a career advisor AI. Explain in 2-3 sentences why this job listing is a good match (or not) for you based on your profile. Be specific, professional, and helpful.
 
 USER PROFILE:
 {user_profile_text}
@@ -208,17 +208,21 @@ if st.button("Find Matches"):
     st.subheader("\u2315 Top Matches:")
     for score, internship, explanation in results:
         st.markdown(f"**{internship['company']} - {internship['title']}**")
-        if internship['redirect_url']:
-            st.markdown(f"[View Posting]({internship['redirect_url']})")
+        if internship["redirect_url"]:
+            st.write(f"[View Job Posting]({internship['redirect_url']})")
         st.write(f"Score: {score:.3f}")
         st.write(f"Location: {internship['location']}")
         st.write(f"Salary: ${internship['salary_min']} - ${internship['salary_max']}")
         st.write(f"Work Type: {type_preference}")
         st.write(f"Schedule: {schedule_preference}")
-        st.write(f"Organization Type: {', '.join(org_type_preference)}")
         st.write(f"Industry: {', '.join(industry_preference)}")
-        st.write(f"**AI Explanation:** {explanation}")
-        st.markdown("<div style='border:1px solid #ccc;padding:10px;max-height:200px;overflow-y:auto;'>" + internship['description'] + "</div>", unsafe_allow_html=True)
+        st.write(f"Org Type: {', '.join(org_type_preference)}")
+        
+        with st.expander("Job Description"):
+            st.markdown(f"<div style='max-height:400px; overflow:auto;'>{internship['description']}</div>", unsafe_allow_html=True)
+        
+        with st.expander("AI Explanation"):
+            st.write(explanation)
         st.write("---")
 
     G = nx.Graph()
