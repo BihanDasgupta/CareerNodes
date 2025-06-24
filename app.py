@@ -10,6 +10,7 @@ import openai
 import numpy as np
 import datetime
 import html
+from pyvis.network import Network
 
 # Load environment variables
 load_dotenv()
@@ -319,7 +320,7 @@ def hybrid_analyze(user_profile_text, internships):
     for sim, internship in top_candidates:
         job_text = f"{internship['title']} at {internship['company']} located in {internship['location']}. Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}"
         prompt = f"""
-You are an internship matching AI given a USER PROFILE and JOB LISTING. Analyze and assign a MATCH_SCORE from 0 to 1 based on how suitable this listing is for the user. Take into account the user's GPA, skills, preferred location, education level, prior experience, preferred work type, preferred salary, preferred schedule, preferred industry, preferred organization type, desired timeline, any details from their resume, and current or intended major if provided, and how well that aligns with what both the user and job is looking for and/or requiring. Only output the score. Do not give any listings 0 unless nothing of the user data matches the job listing.
+You are an internship matching AI given a USER PROFILE and JOB LISTING. Analyze and assign a MATCH_SCORE from 0 to 1 based on how suitable this listing is for the user. Take into account the user's GPA, skills, preferred location, education level, prior experience, preferred work type, preferred salary, preferred schedule, preferred industry, preferred organization type, desired timeline, any details from their resume, and current or intended major if provided, and how well that aligns with what both the user and job is looking for and/or requiring. Only output the score. Do not give any listings 0 unless nothing of the user data matches the job listing. In addition to your original analysis/score following the preceeding instructions, if the job listing is not hiring the user's education level or is completelyunrelated to the user's skill set and major/career path, rank it lower.
 
 USER PROFILE:
 {user_profile_text}
@@ -448,22 +449,38 @@ if st.button("Find Matches"):
  
         st.markdown('<hr>', unsafe_allow_html=True)
 
-    # Create and display the network graph
-    st.subheader("🕸️ Career Network Visualization")
-    st.markdown('<div class="graph-container">', unsafe_allow_html=True)
-    
-    G = nx.Graph()
-    G.add_node("You")
-    for score, internship, _ in results:
-        node = f"{internship['company']}\n{internship['title']}"
-        G.add_node(node)
-        G.add_edge("You", node, weight=score)
-    net = Network(height="600px", width="100%", bgcolor="#222222", font_color="white")
-    net.from_nx(G)
-    net.save_graph("graph.html")
+   G = nx.Graph()
+G.add_node("You", size=30, color="#FF0000")
 
-    with open("graph.html", "r", encoding='utf-8') as HtmlFile:
-        source_code = HtmlFile.read()
-        components.html(source_code, height=650, width=900)
-    
-    st.markdown('</div>', unsafe_allow_html=True)
+for score, internship, _ in results:
+    node_label = f"{internship['company']} - {internship['title']}"
+    G.add_node(node_label, 
+               size=20 + score * 20, 
+               color=f"rgba({int(255 - score*200)}, {int(score*200)}, 150, 0.9)")
+    # Distance inversely proportional to score
+    distance = 100 * (1 - score + 0.1)  # avoid division by zero
+    G.add_edge("You", node_label, value=score * 10, length=distance)
+
+net = Network(height="600px", width="100%", bgcolor="#222222", font_color="white")
+net.from_nx(G)
+
+# Enable better physics simulation
+net.toggle_physics(True)
+net.set_options("""
+var options = {
+  "physics": {
+    "forceAtlas2Based": {
+      "gravitationalConstant": -80,
+      "centralGravity": 0.005,
+      "springLength": 150,
+      "springConstant": 0.08
+    },
+    "maxVelocity": 50,
+    "solver": "forceAtlas2Based",
+    "timestep": 0.35,
+    "stabilization": {"iterations": 150}
+  }
+}
+""")
+
+net.save_graph("graph.html")
