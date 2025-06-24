@@ -79,9 +79,9 @@ def create_user_profile_text(user_inputs, resume_text):
 
 def hybrid_analyze(user_profile_text, internships):
     # Embedding phase
-    profile_embed = co.embed(texts=[user_profile_text], model="embed-english-v3.0").embeddings[0]
+    profile_embed = co.embed(texts=[user_profile_text], model="embed-english-light-v3.0").embeddings[0]
     job_texts = [f"{i['title']} at {i['company']} located in {i['location']}. {i['description']}" for i in internships]
-    job_embeds = co.embed(texts=job_texts, model="embed-english-v3.0").embeddings
+    job_embeds = co.embed(texts=job_texts, model="embed-english-light-v3.0").embeddings
     similarities = np.dot(np.array(job_embeds), np.array(profile_embed))
 
     preliminary = []
