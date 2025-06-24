@@ -424,23 +424,48 @@ if st.button("Find Matches"):
     # Create and display the network graph
     st.subheader("🕸️ Career Network Visualization")
     st.markdown('<div class="graph-container">', unsafe_allow_html=True)
-    
-    G = nx.Graph()
-    G.add_node("You")
-    for score, internship, _ in results:
-        node = f"{internship['company']}\n{internship['title']}"
-        G.add_node(node)
-        G.add_edge("You", node, weight=score)
-    net = Network(height="600px", width="100%", bgcolor="#222222", font_color="#222222")
-    net.from_nx(G)
-    net.save_graph("graph.html")
 
-    with open("graph.html", "r", encoding='utf-8') as HtmlFile:
+    G = Network(height="650px", width="100%", bgcolor="rgba(26, 26, 46, 0.5)", font_color="white", directed=False)
+
+    # Add center user node
+    G.add_node("You", label="You", color="#FF3366", size=50, shape="dot", physics=False, x=0, y=0)
+
+    # Parameters for positioning
+    max_radius = 400  # max distance in px
+    angle_step = 360 / len(results)
+
+    for i, (score, internship, _) in enumerate(results):
+        # Compute radius based on score
+        radius = max_radius * (1 - score)
+        angle_deg = i * angle_step
+        angle_rad = math.radians(angle_deg)
+        x = radius * math.cos(angle_rad)
+        y = radius * math.sin(angle_rad)
+
+        node_label = f"{internship['company']} - {internship['title']}"
+        node_color = f"rgba({int(255 - score*200)}, {int(score*200)}, 150, 0.9)"
+        G.add_node(node_label, label=node_label, color=node_color, size=20 + score*20, x=x, y=y, physics=False)
+        G.add_edge("You", node_label, color="#00d4ff", value=score*5)
+
+    # Disable physics entirely for full control
+    G.set_options("""
+    var options = {
+    "physics": {
+        "enabled": false
+    }
+    }
+    """)
+
+    # Save and render
+    G.save_graph("graph.html")
+
+    with open("graph.html", "r", encoding="utf-8") as HtmlFile:
         source_code = HtmlFile.read()
-        components.html(source_code, height=650, width=900)
-    
-    st.markdown('<div class="graph-container">', unsafe_allow_html=True)
+        components.html(source_code, height=700, width=900)
 
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    
     st.subheader("\u2315 Top Matches:")
     for score, internship, explanation in results:
         # Create a job card with cyber styling
