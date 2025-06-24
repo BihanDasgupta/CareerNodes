@@ -6,7 +6,7 @@ from pyvis.network import Network
 import streamlit.components.v1 as components
 from dotenv import load_dotenv
 import PyPDF2
-import cohere
+import openai
 import numpy as np
 import datetime
 
@@ -21,14 +21,15 @@ else:
     ADZUNA_APP_ID = os.getenv("ADZUNA_APP_ID")
     ADZUNA_APP_KEY = os.getenv("ADZUNA_APP_KEY")
 
-if "cohere" in st.secrets:
-    COHERE_API_KEY = st.secrets["cohere"]["api_key"]
+if "openai" in st.secrets:
+    OPENAI_API_KEY = st.secrets["openai"]["api_key"]
 else:
-    COHERE_API_KEY = os.getenv("COHERE_API_KEY")
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+openai.api_key = OPENAI_API_KEY
 ADZUNA_COUNTRY = "us"
-co = cohere.Client(COHERE_API_KEY)
 
+# Adzuna fetch function
 def fetch_internships(query, location, results_limit=50):
     url = f"https://api.adzuna.com/v1/api/jobs/{ADZUNA_COUNTRY}/search/1"
     params = {
@@ -47,6 +48,7 @@ def fetch_internships(query, location, results_limit=50):
         st.error("Failed to fetch data from Adzuna API.")
         return []
 
+# Resume extraction
 def extract_text_from_resume(file):
     text = ""
     if file.name.endswith(".txt"):
@@ -59,6 +61,7 @@ def extract_text_from_resume(file):
                 text += extracted + "\n"
     return text
 
+# Profile text creation
 def create_user_profile_text(user_inputs, resume_text):
     profile_parts = [
         f"GPA: {user_inputs['gpa'] if user_inputs['gpa'] is not None else 'No GPA Provided'}",
@@ -77,11 +80,18 @@ def create_user_profile_text(user_inputs, resume_text):
     ]
     return "\n".join(profile_parts)
 
+# Hybrid search function
 def hybrid_analyze(user_profile_text, internships):
     # Embedding phase
-    profile_embed = co.embed(texts=[user_profile_text], model="embed-english-light-v3.0").embeddings[0]
+    profile_embed = openai.Embedding.create(
+        input=user_profile_text, model="text-embedding-ada-002")['data'][0]['embedding']
+
     job_texts = [f"{i['title']} at {i['company']} located in {i['location']}. {i['description']}" for i in internships]
-    job_embeds = co.embed(texts=job_texts, model="embed-english-light-v3.0").embeddings
+    job_embeds = []
+    for jt in job_texts:
+        embed = openai.Embedding.create(input=jt, model="text-embedding-ada-002")['data'][0]['embedding']
+        job_embeds.append(embed)
+
     similarities = np.dot(np.array(job_embeds), np.array(profile_embed))
 
     preliminary = []
@@ -105,8 +115,11 @@ JOB LISTING:
 
 MATCH_SCORE:
 """
-        response = co.chat(model="command-r-plus", message=prompt)
-        reply = response.text.strip()
+        response = openai.ChatCompletion.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        reply = response['choices'][0]['message']['content'].strip()
         try:
             score = float(reply.split()[0])
             score = max(0.0, min(1.0, score))
