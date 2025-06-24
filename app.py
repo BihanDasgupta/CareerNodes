@@ -226,6 +226,14 @@ st.markdown("""
         margin: 20px 0 !important;
         box-shadow: 0 4px 15px rgba(0, 212, 255, 0.2) !important;
     }
+    
+    .glass-container {
+        background: rgba(26, 26, 46, 0.8) !important;
+        border-radius: 12px !important;
+        padding: 20px !important;
+        margin: 20px 0 !important;
+        box-shadow: 0 4px 15px rgba(0, 212, 255, 0.2) !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -363,8 +371,8 @@ EXPLANATION:
     return results
 
 # UI
-st.title("\u273e CareerNodes")
-st.subheader("\u2764 A Graphical Internship Matchmaker Powered by AI")
+st.title("✎ᝰ. CareerNodes ılıı")
+st.subheader("\u2764 A Graphical Internship Matchmaker Powered by AI ılııl")
 
 gpa = st.number_input("GPA", min_value=0.0, max_value=4.0, step=0.01, value=None)
 if gpa == 0.0: gpa = None
@@ -421,12 +429,10 @@ if st.button("Find Matches"):
 
     results = hybrid_analyze(profile_text, internships)
 
-    st.subheader("\u2315 Top Matches:")
-
-# Create and display the network graph
+    # Create and display the network graph
     st.subheader("🕸️ Career Network Visualization")
-    st.markdown('<div class="graph-container">', unsafe_allow_html=True)
-        
+    st.markdown('''<div class="graph-container glass-container">''', unsafe_allow_html=True)
+    
     G = nx.Graph()
     G.add_node("You")
     for score, internship, _ in results:
@@ -439,9 +445,13 @@ if st.button("Find Matches"):
 
     with open("graph.html", "r", encoding='utf-8') as HtmlFile:
         source_code = HtmlFile.read()
+        # Remove white border from the graph by injecting custom style
+        source_code = source_code.replace('border: 1px solid white;', '')
         components.html(source_code, height=650, width=900)
         
     st.markdown('</div>', unsafe_allow_html=True)
+
+    st.subheader("\u2315 Top Matches:")
 
     for score, internship, explanation in results:
         # Create a job card with cyber styling
