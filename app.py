@@ -427,13 +427,10 @@ if st.button("Find Matches"):
     st.markdown('<div class="graph-container">', unsafe_allow_html=True)
 
     G = Network(height="650px", width="100%", bgcolor="rgba(26, 26, 46, 0.5)", font_color="white", directed=False)
-
-    # Add center user node
     G.add_node("You", label="You", color="#FF3366", size=50, shape="dot", physics=False, x=0, y=0)
 
-    # Parameters for positioning
-    max_radius = 400  # max distance in px
-    min_radius = 80   # minimum distance for the highest score
+    max_radius = 400
+    min_radius = 80
     scores = [score for score, _, _ in results]
     if scores:
         max_score = max(scores)
@@ -441,24 +438,25 @@ if st.button("Find Matches"):
     else:
         max_score = 1
         min_score = 0
+
     angle_step = 360 / len(results) if results else 1
 
     for i, (score, internship, _) in enumerate(results):
-        # Normalize score so that highest score is closest (min_radius), lowest is farthest (max_radius)
         if max_score != min_score:
             norm = (score - min_score) / (max_score - min_score)
         else:
-            norm = 1  # If all scores are the same
-        # Invert so that norm=1 (highest score) is closest (min_radius), norm=0 (lowest) is farthest (max_radius)
-        radius = min_radius + (1 - norm) * (max_radius - min_radius)
-        # Increase spacing for clarity
+            norm = 1
+
+        # Apply non-linear scaling for stronger visual distinction
+        adjusted_norm = norm ** 2.5
+
+        radius = min_radius + (1 - adjusted_norm) * (max_radius - min_radius)
         radius = radius * 1.25
         angle_deg = i * angle_step
         angle_rad = math.radians(angle_deg)
         x = radius * math.cos(angle_rad)
         y = radius * math.sin(angle_rad)
 
-        # Multi-line label: title and score
         title = f"{internship['company']} - {internship['title']}"
         score_str = f"Score: {score:.3f}"
         label = f'{title}<br>{score_str}'
@@ -469,16 +467,14 @@ if st.button("Find Matches"):
         G.add_node(label, **node_args)
         G.add_edge("You", label, color="#00d4ff", value=score*5)
 
-    # Disable physics entirely for full control
     G.set_options("""
     var options = {
-    "physics": {
-        "enabled": false
-    }
+        "physics": {
+            "enabled": false
+        }
     }
     """)
 
-    # Save and render
     G.save_graph("graph.html")
 
     with open("graph.html", "r", encoding="utf-8") as HtmlFile:
@@ -487,7 +483,6 @@ if st.button("Find Matches"):
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-    
     st.subheader("\u2315 Top Matches:")
     for score, internship, explanation in results:
         # Create a job card with cyber styling
