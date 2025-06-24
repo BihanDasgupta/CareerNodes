@@ -142,461 +142,61 @@ EXTRACTED_MAJOR: <value or 'No specific major requirement listed.'>
         return 0.0, {}
 
 # UI
-st.markdown("""
-<style>
-/* Remove all focus effects */
-input:focus, select:focus, textarea:focus, button:focus {
-    outline: none !important;
-    box-shadow: none !important;
-    border-color: inherit !important;
-}
-
-/* Decorative nodes and neon lines on page margins */
-body::before, body::after {
-    content: '';
-    position: fixed;
-    z-index: 0;
-    pointer-events: none;
-}
-body::before {
-    top: 0; left: 0; right: 0; bottom: 0;
-    background:
-        /* Neon lines (edges) */
-        linear-gradient(to right, #00d4ffcc 2px, transparent 2px) 0 0/100vw 2px no-repeat,
-        linear-gradient(to right, #ff00ffcc 2px, transparent 2px) 0 100vh/100vw 2px no-repeat,
-        linear-gradient(to bottom, #00ff88cc 2px, transparent 2px) 0 0/2px 100vh no-repeat,
-        linear-gradient(to bottom, #ff00ffcc 2px, transparent 2px) 100vw 0/2px 100vh no-repeat,
-        /* Diagonal neon lines */
-        linear-gradient(45deg, #00d4ff99 1.5px, transparent 1.5px) 0 0/120vw 120vh no-repeat,
-        linear-gradient(-45deg, #ff00ff99 1.5px, transparent 1.5px) 0 0/120vw 120vh no-repeat,
-        /* Nodes (corners and edges) */
-        radial-gradient(circle at 30px 30px, #00d4ff 0 7px, transparent 8px),
-        radial-gradient(circle at calc(100vw - 30px) 30px, #ff00ff 0 7px, transparent 8px),
-        radial-gradient(circle at 30px calc(100vh - 30px), #00ff88 0 7px, transparent 8px),
-        radial-gradient(circle at calc(100vw - 30px) calc(100vh - 30px), #00d4ff 0 7px, transparent 8px),
-        /* More nodes along edges */
-        radial-gradient(circle at 50vw 30px, #00d4ff 0 6px, transparent 7px),
-        radial-gradient(circle at 30px 50vh, #ff00ff 0 6px, transparent 7px),
-        radial-gradient(circle at 50vw calc(100vh - 30px), #00ff88 0 6px, transparent 7px),
-        radial-gradient(circle at calc(100vw - 30px) 50vh, #ff00ff 0 6px, transparent 7px),
-        /* Extra nodes */
-        radial-gradient(circle at 20vw 20vh, #00d4ff 0 5px, transparent 6px),
-        radial-gradient(circle at 80vw 20vh, #ff00ff 0 5px, transparent 6px),
-        radial-gradient(circle at 20vw 80vh, #00ff88 0 5px, transparent 6px),
-        radial-gradient(circle at 80vw 80vh, #00d4ff 0 5px, transparent 6px);
-    opacity: 0.85;
-}
-body::after {
-    top: 0; left: 0; right: 0; bottom: 0;
-    background:
-        /* Pulsing nodes for extra effect */
-        radial-gradient(circle at 15vw 10vh, #00d4ff88 0 10px, transparent 11px),
-        radial-gradient(circle at 85vw 10vh, #ff00ff88 0 10px, transparent 11px),
-        radial-gradient(circle at 15vw 90vh, #00ff8888 0 10px, transparent 11px),
-        radial-gradient(circle at 85vw 90vh, #00d4ff88 0 10px, transparent 11px);
-    opacity: 0.5;
-    animation: pulseNodes 2.5s infinite alternate;
-}
-@keyframes pulseNodes {
-    0% { opacity: 0.3; }
-    100% { opacity: 0.7; }
-}
-
-/* Ensure all content is above decorations */
-.main, .block-container, .stApp, .stForm, .stTextInput, .stNumberInput, .stSelectbox, .stMultiSelect, .stCheckbox, .stDateInput, .stFileUploader, .stButton, .stExpander, .stIframe, h1, h2, h3, p, div {
-    position: relative;
-    z-index: 1;
-}
-
-/* Main container styling */
-.main .block-container {
-    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
-    padding: 2rem;
-    position: relative;
-    overflow: visible !important;
-}
-
-/* Decorative nodes and edges for borders */
-.main .block-container::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-    z-index: 1;
-    background: 
-        radial-gradient(circle at 20px 20px, #00d4ff 2px, transparent 2px),
-        radial-gradient(circle at calc(100% - 20px) 20px, #00d4ff 2px, transparent 2px),
-        radial-gradient(circle at 20px calc(100% - 20px), #00d4ff 2px, transparent 2px),
-        radial-gradient(circle at calc(100% - 20px) calc(100% - 20px), #00d4ff 2px, transparent 2px),
-        linear-gradient(90deg, transparent 0%, #00d4ff 1px, transparent 1px) 0 0 / 50px 50px,
-        linear-gradient(0deg, transparent 0%, #00d4ff 1px, transparent 1px) 0 0 / 50px 50px;
-    opacity: 0.3;
-}
-
-/* Additional corner nodes */
-.main .block-container::after {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-    z-index: 1;
-    background: 
-        radial-gradient(circle at 50px 50px, #ff00ff 3px, transparent 3px),
-        radial-gradient(circle at calc(100% - 50px) 50px, #00ff88 3px, transparent 3px),
-        radial-gradient(circle at 50px calc(100% - 50px), #00d4ff 3px, transparent 3px),
-        radial-gradient(circle at calc(100% - 50px) calc(100% - 50px), #ff00ff 3px, transparent 3px);
-    opacity: 0.4;
-}
-
-/* Title and subtitle styling */
-h1 {
-    text-align: center !important;
-    background: linear-gradient(45deg, #00d4ff, #ff00ff, #00ff88);
-    background-size: 200% 200%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-size: 3rem !important;
-    font-weight: 700 !important;
-    text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
-    animation: gradientShift 3s ease-in-out infinite;
-    margin-bottom: 0.5rem !important;
-    position: relative;
-    z-index: 3;
-}
-
-h3 {
-    text-align: center !important;
-    font-size: 1.1rem !important;
-    color: #b0b0b0 !important;
-    font-weight: 300 !important;
-    letter-spacing: 2px !important;
-    margin-bottom: 2rem !important;
-    position: relative;
-    z-index: 3;
-}
-
-/* Gradient animation for title */
-@keyframes gradientShift {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-}
-
-/* Form container styling */
-.stForm {
-    background: rgba(26, 26, 46, 0.9) !important;
-    border: 1px solid #00d4ff !important;
-    border-radius: 15px !important;
-    padding: 2rem !important;
-    backdrop-filter: blur(10px) !important;
-    box-shadow: 0 8px 32px rgba(0, 212, 255, 0.2) !important;
-    margin: 1rem 0 !important;
-    position: relative;
-    z-index: 3;
-    overflow: visible !important;
-}
-
-/* Label styling */
-.stForm label {
-    color: #00d4ff !important;
-    font-weight: 600 !important;
-    font-size: 0.9rem !important;
-    text-transform: uppercase !important;
-    letter-spacing: 1px !important;
-    margin-bottom: 0.5rem !important;
-    position: relative;
-    z-index: 4;
-}
-
-/* Text input styling */
-.stTextInput > div > div > input {
-    background: rgba(10, 10, 10, 0.9) !important;
-    border: 2px solid #333 !important;
-    border-radius: 8px !important;
-    color: #e0e0e0 !important;
-    padding: 12px 16px !important;
-    font-size: 0.9rem !important;
-    transition: all 0.3s ease !important;
-    position: relative;
-    z-index: 4;
-    overflow: visible !important;
-}
-
-.stTextInput > div > div > input:focus {
-    border-color: #00d4ff !important;
-    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
-    background: rgba(10, 10, 10, 0.95) !important;
-    z-index: 5;
-}
-
-.stTextInput > div > div > input::placeholder {
-    color: #666 !important;
-}
-
-/* Number input styling */
-.stNumberInput > div > div > input {
-    background: rgba(10, 10, 10, 0.9) !important;
-    border: 2px solid #333 !important;
-    border-radius: 8px !important;
-    color: #e0e0e0 !important;
-    padding: 12px 16px !important;
-    font-size: 0.9rem !important;
-    transition: all 0.3s ease !important;
-    position: relative;
-    z-index: 4;
-    overflow: visible !important;
-}
-
-.stNumberInput > div > div > input:focus {
-    border-color: #00d4ff !important;
-    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
-    background: rgba(10, 10, 10, 0.95) !important;
-    z-index: 5;
-}
-
-/* Selectbox styling */
-.stSelectbox > div > div > div {
-    background: rgba(10, 10, 10, 0.9) !important;
-    border: 2px solid #333 !important;
-    border-radius: 8px !important;
-    color: #e0e0e0 !important;
-    padding: 12px 16px !important;
-    font-size: 0.9rem !important;
-    transition: all 0.3s ease !important;
-    position: relative;
-    z-index: 4;
-    overflow: visible !important;
-}
-
-.stSelectbox > div > div > div:focus-within {
-    border-color: #00d4ff !important;
-    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
-    background: rgba(10, 10, 10, 0.95) !important;
-    z-index: 5;
-}
-
-/* Multiselect styling */
-.stMultiSelect > div > div > div {
-    background: rgba(10, 10, 10, 0.9) !important;
-    border: 2px solid #333 !important;
-    border-radius: 8px !important;
-    color: #e0e0e0 !important;
-    padding: 12px 16px !important;
-    font-size: 0.9rem !important;
-    transition: all 0.3s ease !important;
-    position: relative;
-    z-index: 4;
-    overflow: visible !important;
-}
-
-.stMultiSelect > div > div > div:focus-within {
-    border-color: #00d4ff !important;
-    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
-    background: rgba(10, 10, 10, 0.95) !important;
-    z-index: 5;
-}
-
-/* Checkbox styling */
-.stCheckbox > div > div {
-    background: rgba(10, 10, 10, 0.9) !important;
-    border: 2px solid #333 !important;
-    border-radius: 8px !important;
-    padding: 12px 16px !important;
-    transition: all 0.3s ease !important;
-    position: relative;
-    z-index: 4;
-    overflow: visible !important;
-}
-
-.stCheckbox > div > div:focus-within {
-    border-color: #00d4ff !important;
-    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
-}
-
-/* Date input styling */
-.stDateInput > div > div > input {
-    background: rgba(10, 10, 10, 0.9) !important;
-    border: 2px solid #333 !important;
-    border-radius: 8px !important;
-    color: #e0e0e0 !important;
-    padding: 12px 16px !important;
-    font-size: 0.9rem !important;
-    transition: all 0.3s ease !important;
-    position: relative;
-    z-index: 4;
-    overflow: visible !important;
-}
-
-.stDateInput > div > div > input:focus {
-    border-color: #00d4ff !important;
-    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
-    background: rgba(10, 10, 10, 0.95) !important;
-    z-index: 5;
-}
-
-/* File uploader styling */
-.stFileUploader > div > div {
-    background: rgba(10, 10, 10, 0.9) !important;
-    border: 2px solid #333 !important;
-    border-radius: 8px !important;
-    padding: 20px !important;
-    transition: all 0.3s ease !important;
-    position: relative;
-    z-index: 4;
-    overflow: visible !important;
-}
-
-.stFileUploader > div > div:hover {
-    border-color: #00d4ff !important;
-    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3) !important;
-}
-
-/* Button styling */
-.stButton > button {
-    background: linear-gradient(45deg, #00d4ff, #0099cc) !important;
-    border: none !important;
-    border-radius: 8px !important;
-    color: #000 !important;
-    font-weight: 600 !important;
-    padding: 12px 24px !important;
-    font-size: 1rem !important;
-    text-transform: uppercase !important;
-    letter-spacing: 1px !important;
-    transition: all 0.3s ease !important;
-    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3) !important;
-    position: relative;
-    z-index: 4;
-}
-
-.stButton > button:hover {
-    background: linear-gradient(45deg, #0099cc, #00d4ff) !important;
-    box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5) !important;
-    transform: translateY(-2px) !important;
-}
-
-/* Success message styling */
-.stSuccess {
-    background: rgba(0, 255, 136, 0.1) !important;
-    border: 1px solid #00ff88 !important;
-    border-radius: 8px !important;
-    color: #00ff88 !important;
-    padding: 12px 16px !important;
-    position: relative;
-    z-index: 4;
-}
-
-/* Results styling */
-.stExpander > div > div {
-    background: rgba(26, 26, 46, 0.9) !important;
-    border: 1px solid #333 !important;
-    border-radius: 8px !important;
-    margin: 8px 0 !important;
-    position: relative;
-    z-index: 4;
-    overflow: visible !important;
-}
-
-/* Graph container styling */
-.stIframe {
-    border: 2px solid #00d4ff !important;
-    border-radius: 15px !important;
-    box-shadow: 0 8px 32px rgba(0, 212, 255, 0.2) !important;
-    margin: 2rem 0 !important;
-    position: relative;
-    z-index: 4;
-}
-
-/* Section headers */
-h2 {
-    color: #00d4ff !important;
-    font-size: 1.5rem !important;
-    font-weight: 600 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 2px !important;
-    margin: 2rem 0 1rem 0 !important;
-    text-align: center !important;
-    position: relative;
-    z-index: 3;
-}
-
-/* General text styling */
-p, div {
-    color: #e0e0e0 !important;
-    position: relative;
-    z-index: 3;
-}
-
-/* Scrollbar styling */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(10, 10, 10, 0.8);
-}
-
-::-webkit-scrollbar-thumb {
-    background: linear-gradient(45deg, #00d4ff, #0099cc);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(45deg, #0099cc, #00d4ff);
-}
-
-/* Ensure dropdown menus are visible */
-.stSelectbox > div > div > div > div {
-    background: rgba(10, 10, 10, 0.95) !important;
-    border: 1px solid #00d4ff !important;
-    border-radius: 8px !important;
-    z-index: 1000 !important;
-    overflow: visible !important;
-}
-
-/* Fix for any hidden elements */
-* {
-    overflow: visible !important;
-}
-
-/* Additional decorative elements */
-.main .block-container::before {
-    content: '';
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    width: 100px;
-    height: 100px;
-    border: 1px solid #00d4ff;
-    border-radius: 50%;
-    opacity: 0.2;
-    animation: pulse 2s infinite;
-}
-
-.main .block-container::after {
-    content: '';
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 80px;
-    height: 80px;
-    border: 1px solid #ff00ff;
-    border-radius: 50%;
-    opacity: 0.2;
-    animation: pulse 2s infinite 1s;
-}
-
-@keyframes pulse {
-    0%, 100% { transform: scale(1); opacity: 0.2; }
-    50% { transform: scale(1.1); opacity: 0.4; }
-}
-</style>
-""", unsafe_allow_html=True)
+st.markdown('''
+<div style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:0;">
+<svg width="100%" height="100%" style="position:absolute;top:0;left:0;">
+  <!-- Top left node -->
+  <circle cx="30" cy="30" r="8" fill="#00d4ff" filter="url(#glow1)"/>
+  <!-- Top right node -->
+  <circle cx="calc(100vw - 30)" cy="30" r="8" fill="#ff00ff" filter="url(#glow2)"/>
+  <!-- Bottom left node -->
+  <circle cx="30" cy="calc(100vh - 30)" r="8" fill="#00ff88" filter="url(#glow3)"/>
+  <!-- Bottom right node -->
+  <circle cx="calc(100vw - 30)" cy="calc(100vh - 30)" r="8" fill="#00d4ff" filter="url(#glow1)"/>
+  <!-- Top edge node -->
+  <circle cx="50vw" cy="30" r="6" fill="#00d4ff"/>
+  <!-- Left edge node -->
+  <circle cx="30" cy="50vh" r="6" fill="#ff00ff"/>
+  <!-- Bottom edge node -->
+  <circle cx="50vw" cy="calc(100vh - 30)" r="6" fill="#00ff88"/>
+  <!-- Right edge node -->
+  <circle cx="calc(100vw - 30)" cy="50vh" r="6" fill="#ff00ff"/>
+  <!-- Neon lines -->
+  <line x1="30" y1="30" x2="50vw" y2="30" stroke="#00d4ff" stroke-width="2" filter="url(#glow1)"/>
+  <line x1="50vw" y1="30" x2="calc(100vw - 30)" y2="30" stroke="#00d4ff" stroke-width="2" filter="url(#glow1)"/>
+  <line x1="30" y1="30" x2="30" y2="50vh" stroke="#ff00ff" stroke-width="2" filter="url(#glow2)"/>
+  <line x1="30" y1="50vh" x2="30" y2="calc(100vh - 30)" stroke="#00ff88" stroke-width="2" filter="url(#glow3)"/>
+  <line x1="30" y1="calc(100vh - 30)" x2="50vw" y2="calc(100vh - 30)" stroke="#00ff88" stroke-width="2" filter="url(#glow3)"/>
+  <line x1="50vw" y1="calc(100vh - 30)" x2="calc(100vw - 30)" y2="calc(100vh - 30)" stroke="#00d4ff" stroke-width="2" filter="url(#glow1)"/>
+  <line x1="calc(100vw - 30)" y1="30" x2="calc(100vw - 30)" y2="50vh" stroke="#ff00ff" stroke-width="2" filter="url(#glow2)"/>
+  <line x1="calc(100vw - 30)" y1="50vh" x2="calc(100vw - 30)" y2="calc(100vh - 30)" stroke="#00ff88" stroke-width="2" filter="url(#glow3)"/>
+  <!-- SVG filters for neon glow -->
+  <defs>
+    <filter id="glow1" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glow2" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glow3" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+</svg>
+</div>
+''', unsafe_allow_html=True)
 
 st.title("✎ᝰ. CareerNodes ılıılı")
 st.subheader("❤︎ A Graphical Internship Matchmaker Powered by AI ılılıılııılı")
