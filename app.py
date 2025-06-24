@@ -449,16 +449,25 @@ if st.button("Find Matches"):
             norm = (score - min_score) / (max_score - min_score)
         else:
             norm = 1  # If all scores are the same
+        # Invert so that norm=1 (highest score) is closest (min_radius), norm=0 (lowest) is farthest (max_radius)
         radius = min_radius + (1 - norm) * (max_radius - min_radius)
+        # Increase spacing for clarity
+        radius = radius * 1.25
         angle_deg = i * angle_step
         angle_rad = math.radians(angle_deg)
         x = radius * math.cos(angle_rad)
         y = radius * math.sin(angle_rad)
 
-        node_label = f"{internship['company']} - {internship['title']}\nScore: {score:.3f}"
+        # Multi-line label: title and score
+        title = f"{internship['company']} - {internship['title']}"
+        score_str = f"Score: {score:.3f}"
+        label = f'{title}<br>{score_str}'
         node_color = f"rgba({int(255 - score*200)}, {int(score*200)}, 150, 0.9)"
-        G.add_node(node_label, label=node_label, color=node_color, size=20 + score*20, x=x, y=y, physics=False)
-        G.add_edge("You", node_label, color="#00d4ff", value=score*5)
+        node_args = dict(label=label, color=node_color, size=28 + score*28, x=x, y=y, physics=False, font={"multi": True, "vadjust": -20, "size": 18, "face": "monospace"})
+        if internship['redirect_url']:
+            node_args['url'] = internship['redirect_url']
+        G.add_node(label, **node_args)
+        G.add_edge("You", label, color="#00d4ff", value=score*5)
 
     # Disable physics entirely for full control
     G.set_options("""
