@@ -1,4 +1,3 @@
-import openai
 import streamlit as st
 import requests
 import os
@@ -30,7 +29,6 @@ else:
 openai.api_key = OPENAI_API_KEY
 ADZUNA_COUNTRY = "us"
 
-# Adzuna fetch function
 def fetch_internships(query, location, results_limit=50):
     url = f"https://api.adzuna.com/v1/api/jobs/{ADZUNA_COUNTRY}/search/1"
     params = {
@@ -49,7 +47,6 @@ def fetch_internships(query, location, results_limit=50):
         st.error("Failed to fetch data from Adzuna API.")
         return []
 
-# Resume extraction
 def extract_text_from_resume(file):
     text = ""
     if file.name.endswith(".txt"):
@@ -62,7 +59,6 @@ def extract_text_from_resume(file):
                 text += extracted + "\n"
     return text
 
-# Profile text creation
 def create_user_profile_text(user_inputs, resume_text):
     profile_parts = [
         f"GPA: {user_inputs['gpa'] if user_inputs['gpa'] is not None else 'No GPA Provided'}",
@@ -81,27 +77,28 @@ def create_user_profile_text(user_inputs, resume_text):
     ]
     return "\n".join(profile_parts)
 
-# Hybrid search function
 def hybrid_analyze(user_profile_text, internships):
-    # Embedding phase
-    profile_embed = openai.Embedding.create(
-        input=user_profile_text, model="text-embedding-ada-002")['data'][0]['embedding']
+    profile_embed = openai.embeddings.create(
+        input=user_profile_text,
+        model="text-embedding-ada-002"
+    ).data[0].embedding
 
     job_texts = [f"{i['title']} at {i['company']} located in {i['location']}. {i['description']}" for i in internships]
     job_embeds = []
     for jt in job_texts:
-        embed = openai.Embedding.create(input=jt, model="text-embedding-ada-002")['data'][0]['embedding']
+        embed = openai.embeddings.create(
+            input=jt,
+            model="text-embedding-ada-002"
+        ).data[0].embedding
         job_embeds.append(embed)
 
     similarities = np.dot(np.array(job_embeds), np.array(profile_embed))
-
     preliminary = []
     for sim, internship in zip(similarities, internships):
         preliminary.append((sim, internship))
     preliminary.sort(reverse=True, key=lambda x: x[0])
     top_candidates = preliminary[:10]
 
-    # Now refine these using LLM prompting
     results = []
     for sim, internship in top_candidates:
         job_text = f"{internship['title']} at {internship['company']} located in {internship['location']}. Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}"
@@ -116,11 +113,11 @@ JOB LISTING:
 
 MATCH_SCORE:
 """
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "user", "content": prompt}]
         )
-        reply = response['choices'][0]['message']['content'].strip()
+        reply = response.choices[0].message.content.strip()
         try:
             score = float(reply.split()[0])
             score = max(0.0, min(1.0, score))
@@ -131,7 +128,7 @@ MATCH_SCORE:
     results.sort(reverse=True, key=lambda x: x[0])
     return results
 
-# UI section
+# UI
 st.title("\u273e CareerNodes")
 st.subheader("\u2764 A Graphical Internship Matchmaker Powered by AI")
 
@@ -199,7 +196,6 @@ if st.button("Find Matches"):
             st.write(internship['description'])
         st.write("---")
 
-    # Visualization
     G = nx.Graph()
     G.add_node("You")
     for score, internship in results:
