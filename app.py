@@ -153,11 +153,18 @@ st.markdown("""
 .stNumberInput > div > div > input {
     color: #808080 !important;
 }
+h1 {
+    text-align: center !important;
+}
+h3 {
+    text-align: center !important;
+    font-size: 1.2rem !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
 st.title("✎ᝰ. CareerNodes ılıılı")
-st.subheader("ılıılı❤︎ A Graphical Internship Matchmaker Powered by AI ❤︎ılıılı")
+st.subheader("❤︎ A Graphical Internship Matchmaker Powered by AIılılıılııılı")
 
 gpa = st.number_input("GPA", min_value=0.0, max_value=4.0, step=0.01, format="%0.2f", value=None)
 if gpa == 0.0:
