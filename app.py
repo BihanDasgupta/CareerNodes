@@ -77,37 +77,40 @@ def create_user_profile_text(user_inputs, resume_text):
     ]
     return "\n".join(profile_parts)
 
-# New backend ranking using Cohere Rerank
 def rerank_internships(user_profile_text, internships):
-    documents = [
-        f"{internship['title']} at {internship['company']} in {internship['location']}. Description: {internship['description']}" 
+    job_texts = [
+        f"{internship['title']} at {internship['company']} located in {internship['location']}. Description: {internship['description']} Salary Range: ${internship['salary_min']}-${internship['salary_max']}"
         for internship in internships
     ]
-
     response = co.rerank(
-        model="rerank-english-v2.0",
+        model="rerank",
         query=user_profile_text,
-        documents=documents,
-        top_n=len(documents)
+        documents=job_texts,
+        top_n=len(job_texts)
     )
+    ranked_results = [(r.relevance_score, internships[r.index]) for r in response.results]
+    return ranked_results
 
-    reranked = []
-    for result in response.results:
-        idx = result.index
-        score = result.relevance_score / 100  # normalize to 0-1 scale for consistency
-        reranked.append((score, internships[idx]))
-    reranked.sort(reverse=True, key=lambda x: x[0])
-    return reranked
-
-# ----------------------- UI (UNTOUCHED) -----------------------
+# UI remains exactly the same
 
 st.markdown("""
 <style>
-.stTextInput > div > div > input { color: #808080 !important; }
-.stSelectbox > div > div > div { color: #808080 !important; }
-.stNumberInput > div > div > input { color: #808080 !important; }
-h1 { text-align: center !important; }
-h3 { text-align: center !important; font-size: 1.2rem !important; }
+.stTextInput > div > div > input {
+    color: #808080 !important;
+}
+.stSelectbox > div > div > div {
+    color: #808080 !important;
+}
+.stNumberInput > div > div > input {
+    color: #808080 !important;
+}
+h1 {
+    text-align: center !important;
+}
+h3 {
+    text-align: center !important;
+    font-size: 1.2rem !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -115,20 +118,26 @@ st.title("✎ᝰ. CareerNodes ılıılı")
 st.subheader("❤︎ A Graphical Internship Matchmaker Powered by AIılılıılııılı")
 
 gpa = st.number_input("GPA", min_value=0.0, max_value=4.0, step=0.01, format="%0.2f", value=None)
-if gpa == 0.0: gpa = None
+if gpa == 0.0:
+    gpa = None
 education = st.selectbox("Education Level", [
-    "Choose an option", "High School Junior", "High School Senior", "High School Diploma",
+    "Choose an option",
+    "High School Junior", "High School Senior", "High School Diploma",
     "Undergrad Freshman", "Undergrad Sophomore", "Undergrad Junior",
     "Undergrad Senior", "Bachelor's Degree", "Associates Degree", "Grad Student"])
 school = st.text_input("Current School (College or High School)", placeholder="Type an answer...")
 major = st.text_input("Current Major or Intended Major", placeholder="Type an answer...")
 skills_input = st.text_input("Skills (comma-separated)", placeholder="Type an answer...")
 skills = [s.strip().lower() for s in skills_input.split(",") if s.strip()]
-type_preference = st.selectbox("Work Type", ["Choose an option", "Remote", "On-Site", "Hybrid"])
+type_preference = st.selectbox("Work Type", [
+    "Choose an option",
+    "Remote", "On-Site", "Hybrid"])
 location = st.text_input("Preferred Location", placeholder="Type an answer...")
 industry_preference = st.multiselect("Industry", ["Tech", "Finance", "Healthcare", "Education", "Government", "Nonprofit", "Consulting", "Manufacturing", "Media", "Energy", "Legal", "Other"])
 org_type_preference = st.multiselect("Organization Type", ["Startup", "Large Company", "Small Business", "University / Research", "Government Agency", "Nonprofit", "Venture Capital", "Other"])
-schedule_preference = st.selectbox("Schedule", ["Choose an option", "Full-Time", "Part-Time"])
+schedule_preference = st.selectbox("Schedule", [
+    "Choose an option",
+    "Full-Time", "Part-Time"])
 salary_min = st.number_input("Min Annual Salary ($)", min_value=0, value=None)
 salary_max = st.number_input("Max Annual Salary ($)", min_value=0, value=None)
 if salary_min == 0: salary_min = None
@@ -171,6 +180,7 @@ if st.button("Find Matches"):
     st.write("\u2661 AI Matching in Progress...")
 
     results = rerank_internships(profile_text, internships)
+    results.sort(reverse=True, key=lambda x: x[0])
 
     st.subheader("\u2315 Top Matches:")
     for score, internship in results:
