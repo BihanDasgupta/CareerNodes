@@ -422,6 +422,27 @@ if st.button("Find Matches"):
     results = hybrid_analyze(profile_text, internships)
 
     st.subheader("\u2315 Top Matches:")
+
+# Create and display the network graph
+    st.subheader("🕸️ Career Network Visualization")
+    st.markdown('<div class="graph-container">', unsafe_allow_html=True)
+        
+    G = nx.Graph()
+    G.add_node("You")
+    for score, internship, _ in results:
+        node = f"{internship['company']}\n{internship['title']}"
+        G.add_node(node)
+        G.add_edge("You", node, weight=score)
+    net = Network(height="600px", width="100%", bgcolor="#222222", font_color="white")
+    net.from_nx(G)
+    net.save_graph("graph.html")
+
+    with open("graph.html", "r", encoding='utf-8') as HtmlFile:
+        source_code = HtmlFile.read()
+        components.html(source_code, height=650, width=900)
+        
+    st.markdown('</div>', unsafe_allow_html=True)
+
     for score, internship, explanation in results:
         # Create a job card with cyber styling
         st.markdown(f"""
@@ -448,22 +469,3 @@ if st.button("Find Matches"):
  
         st.markdown('<hr>', unsafe_allow_html=True)
 
-         # Create and display the network graph
-        st.subheader("🕸️ Career Network Visualization")
-        st.markdown('<div class="graph-container">', unsafe_allow_html=True)
-        
-        G = nx.Graph()
-        G.add_node("You")
-        for score, internship, _ in results:
-            node = f"{internship['company']}\n{internship['title']}"
-            G.add_node(node)
-            G.add_edge("You", node, weight=score)
-        net = Network(height="600px", width="100%", bgcolor="#222222", font_color="white")
-        net.from_nx(G)
-        net.save_graph("graph.html")
-
-        with open("graph.html", "r", encoding='utf-8') as HtmlFile:
-            source_code = HtmlFile.read()
-            components.html(source_code, height=650, width=900)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
