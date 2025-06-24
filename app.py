@@ -451,41 +451,41 @@ if st.button("Find Matches"):
  
         st.markdown('<hr>', unsafe_allow_html=True)
 
-st.subheader("🕸️ Career Network Visualization")
-st.markdown('<div class="graph-container">', unsafe_allow_html=True)
+    st.subheader("🕸️ Career Network Visualization")
+    st.markdown('<div class="graph-container">', unsafe_allow_html=True)
 
-G = nx.Graph()
-G.add_node("You", size=30, color="#FF0000")
+    G = nx.Graph()
+    G.add_node("You", size=30, color="#FF0000")
 
-for score, internship, _ in results:
-    node_label = f"{internship['company']} - {internship['title']}"
-    G.add_node(node_label, 
-               size=20 + score * 20, 
-               color=f"rgba({int(255 - score*200)}, {int(score*200)}, 150, 0.9)")
-    # Distance inversely proportional to score
-    distance = 100 * (1 - score + 0.1)  # avoid division by zero
-    G.add_edge("You", node_label, value=score * 10, length=distance)
+    for score, internship, _ in results:
+        node_label = f"{internship['company']} - {internship['title']}"
+        G.add_node(node_label, 
+                size=20 + score * 20, 
+                color=f"rgba({int(255 - score*200)}, {int(score*200)}, 150, 0.9)")
+        # Distance inversely proportional to score
+        distance = 100 * (1 - score + 0.1)  # avoid division by zero
+        G.add_edge("You", node_label, value=score * 10, length=distance)
 
-net = Network(height="600px", width="100%", bgcolor="#222222", font_color="white")
-net.from_nx(G)
+    net = Network(height="600px", width="100%", bgcolor="#222222", font_color="white")
+    net.from_nx(G)
 
-# Enable better physics simulation
-net.toggle_physics(True)
-net.set_options("""
-var options = {
-  "physics": {
-    "forceAtlas2Based": {
-      "gravitationalConstant": -80,
-      "centralGravity": 0.005,
-      "springLength": 150,
-      "springConstant": 0.08
-    },
-    "maxVelocity": 50,
-    "solver": "forceAtlas2Based",
-    "timestep": 0.35,
-    "stabilization": {"iterations": 150}
-  }
-}
-""")
+    # Enable better physics simulation
+    net.toggle_physics(True)
+    net.set_options("""
+    var options = {
+    "physics": {
+        "forceAtlas2Based": {
+        "gravitationalConstant": -80,
+        "centralGravity": 0.005,
+        "springLength": 150,
+        "springConstant": 0.08
+        },
+        "maxVelocity": 50,
+        "solver": "forceAtlas2Based",
+        "timestep": 0.35,
+        "stabilization": {"iterations": 150}
+    }
+    }
+    """)
 
-net.save_graph("graph.html")
+    net.save_graph("graph.html")
