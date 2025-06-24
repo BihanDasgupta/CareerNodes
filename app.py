@@ -144,14 +144,7 @@ EXTRACTED_MAJOR: <value or 'No specific major requirement listed.'>
 # UI
 st.markdown("""
 <style>
-/* Remove all focus effects */
-input:focus, select:focus, textarea:focus, button:focus {
-    outline: none !important;
-    box-shadow: none !important;
-    border-color: inherit !important;
-}
-
-/* Cyberpunk margin/corner nodes and subtle grid */
+/* Main container styling */
 .main .block-container {
     background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
     padding: 2rem;
@@ -159,6 +152,7 @@ input:focus, select:focus, textarea:focus, button:focus {
     overflow: visible !important;
 }
 
+/* Cyberpunk margin/corner nodes and subtle grid */
 .main .block-container::before {
     content: '';
     position: fixed;
