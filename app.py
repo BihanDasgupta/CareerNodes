@@ -144,6 +144,57 @@ EXTRACTED_MAJOR: <value or 'No specific major requirement listed.'>
 # UI
 st.markdown("""
 <style>
+/* Remove default focus outlines and soften custom focus */
+input:focus, select:focus, textarea:focus, button:focus {
+    outline: none !important;
+    box-shadow: 0 0 6px #00d4ff55 !important;
+    border-color: #00d4ff !important;
+}
+
+/* Decorative nodes and edges on page margins */
+body::before, body::after {
+    content: '';
+    position: fixed;
+    z-index: 0;
+    pointer-events: none;
+}
+body::before {
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+        /* Edges */
+        linear-gradient(to right, #00d4ff55 2px, transparent 2px) 0 0/100vw 2px no-repeat,
+        linear-gradient(to right, #00d4ff55 2px, transparent 2px) 0 100vh/100vw 2px no-repeat,
+        linear-gradient(to bottom, #00d4ff55 2px, transparent 2px) 0 0/2px 100vh no-repeat,
+        linear-gradient(to bottom, #00d4ff55 2px, transparent 2px) 100vw 0/2px 100vh no-repeat,
+        /* Nodes */
+        radial-gradient(circle at 30px 30px, #00d4ff 0 7px, transparent 8px),
+        radial-gradient(circle at calc(100vw - 30px) 30px, #ff00ff 0 7px, transparent 8px),
+        radial-gradient(circle at 30px calc(100vh - 30px), #00ff88 0 7px, transparent 8px),
+        radial-gradient(circle at calc(100vw - 30px) calc(100vh - 30px), #00d4ff 0 7px, transparent 8px);
+    opacity: 0.7;
+}
+body::after {
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+        /* Extra pulsing nodes */
+        radial-gradient(circle at 80px 80px, #00d4ff88 0 12px, transparent 13px),
+        radial-gradient(circle at calc(100vw - 80px) 80px, #ff00ff88 0 12px, transparent 13px),
+        radial-gradient(circle at 80px calc(100vh - 80px), #00ff8888 0 12px, transparent 13px),
+        radial-gradient(circle at calc(100vw - 80px) calc(100vh - 80px), #00d4ff88 0 12px, transparent 13px);
+    opacity: 0.4;
+    animation: pulseNodes 2.5s infinite alternate;
+}
+@keyframes pulseNodes {
+    0% { opacity: 0.4; }
+    100% { opacity: 0.7; }
+}
+
+/* Ensure all content is above decorations */
+.main, .block-container, .stApp, .stForm, .stTextInput, .stNumberInput, .stSelectbox, .stMultiSelect, .stCheckbox, .stDateInput, .stFileUploader, .stButton, .stExpander, .stIframe, h1, h2, h3, p, div {
+    position: relative;
+    z-index: 1;
+}
+
 /* Main container styling */
 .main .block-container {
     background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
@@ -188,12 +239,6 @@ st.markdown("""
         radial-gradient(circle at 50px calc(100% - 50px), #00d4ff 3px, transparent 3px),
         radial-gradient(circle at calc(100% - 50px) calc(100% - 50px), #ff00ff 3px, transparent 3px);
     opacity: 0.4;
-}
-
-/* Ensure content is above decorative elements */
-.main .block-container > * {
-    position: relative;
-    z-index: 2;
 }
 
 /* Title and subtitle styling */
