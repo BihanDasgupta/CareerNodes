@@ -444,7 +444,7 @@ if st.button("Find Matches"):
     for i, (score, internship, _) in enumerate(results):
         if max_score != min_score:
             #norm = (score - min_score) / (max_score - min_score)
-            norm = (max_score - min_score)/(score - min_score) 
+            norm = (max_score - min_score)/(score - min_score + 0.05) 
             
         else:
             norm = 1
