@@ -411,7 +411,7 @@ if st.button("Find Matches"):
             "work_type": job.get("contract_type", "Not specified"),
             "schedule": job.get("contract_time", "Not specified"),
             "industry": job.get("category", {}).get("label", "Not specified"),
-            "org_type": job.get("company", {}).get("label", "Not specified"),
+            "org_type": job.get("company", {}).get("label", "Not specified"),})
 
     user_inputs = {
         "gpa": gpa, "education": education, "school": school, "major": major,
