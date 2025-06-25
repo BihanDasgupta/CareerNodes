@@ -461,7 +461,7 @@ if st.button("Find Matches"):
 
         title = f"{internship['company']} - {internship['title']}"
         score_str = f"Score: {score:.3f}"
-        label = f'{title}, \n{score_str}'
+        label = f'{title}, \n{score_str}, \n🔗{internship["redirect_url"]'
         node_color = f"rgba({int(255 - score*200)}, {int(score*200)}, 150, 0.9)"
         node_args = dict(label=label, color=node_color, size=28 + score*28, x=x, y=y, physics=False, font={"multi": True, "vadjust": -20, "size": 18, "face": "monospace"})
         if internship['redirect_url']:
