@@ -220,12 +220,12 @@ st.markdown("""
     
     /* Graph container styling */
     .graph-container {
-        background: rgba(26, 26, 46, 0.8) !important;
-        border: 2px solid #00d4ff !important;
-        border-radius: 12px !important;
-        padding: 20px !important;
-        margin: 20px 0 !important;
-        box-shadow: 0 4px 15px rgba(0, 212, 255, 0.2) !important;
+        background: rgba(26, 26, 46, 0.8);
+        border: none;
+        border-radius: none;
+        padding: 20px;
+        margin: 20px 0;
+        box-shadow: 0 4px 15px rgba(0, 212, 255, 0.2);
     }
 </style>
 """, unsafe_allow_html=True)
