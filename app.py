@@ -443,14 +443,16 @@ if st.button("Find Matches"):
 
     for i, (score, internship, _) in enumerate(results):
         if max_score != min_score:
-            norm = (score - min_score) / (max_score - min_score)
+            #norm = (score - min_score) / (max_score - min_score)
+            norm = (max_score - min_score)/(score - min_score) 
+            
         else:
             norm = 1
 
         # Apply non-linear scaling for stronger visual distinction
         adjusted_norm = norm ** 2.5
-
-        radius = min_radius + (1 - adjusted_norm) * (max_radius - min_radius)
+        #radius = min_radius + (1 - adjusted_norm) * (max_radius - min_radius)
+        radius = min_radius + adjusted_norm * (max_radius - min_radius)
         radius = radius * 1.25
         angle_deg = i * angle_step
         angle_rad = math.radians(angle_deg)
