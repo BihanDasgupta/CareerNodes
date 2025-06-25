@@ -426,7 +426,7 @@ if st.button("Find Matches"):
     st.subheader("🕸️ Career Network Visualization")
     st.markdown('<div class="graph-container">', unsafe_allow_html=True)
 
-    G = Network(height="650px", width="100%", bgcolor="rgba(26, 26, 46, 0.5)", font_color="00d4ff", directed=False)
+    G = Network(height="650px", width="100%", bgcolor="rgba(26, 26, 46, 0.5)", font_color=Black, directed=False)
     G.add_node("You", label="You", color="#FF3366", size=50, shape="dot", physics=False, x=0, y=0)
 
     max_radius = 400
@@ -450,7 +450,7 @@ if st.button("Find Matches"):
             norm = 1
 
         # Apply non-linear scaling for stronger visual distinction
-        adjusted_norm = norm ** 0.8
+        adjusted_norm = norm ** 0.5
         #radius = min_radius + (1 - adjusted_norm) * (max_radius - min_radius)
         radius = min_radius + adjusted_norm * (max_radius - min_radius)
         radius = radius * 1.25
