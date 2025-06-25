@@ -411,8 +411,8 @@ if st.button("Find Matches"):
             "work_type": job.get("contract_type", "Not specified"),
             "schedule": job.get("contract_time", "Not specified"),
             "industry": job.get("category", {}).get("label", "Not specified"),
-            "org_type": job.get("company", {}).get("label", "Not specified"),})
-
+            "org_type": job.get("company", {}).get("label", "Not specified"),
+        })
     user_inputs = {
         "gpa": gpa, "education": education, "school": school, "major": major,
         "skills": skills, "location": location, "industry": industry_preference,
@@ -501,7 +501,7 @@ if st.button("Find Matches"):
             <p><strong>Salary:</strong> ${internship['salary_min']} - ${internship['salary_max']}</p>
             <p><strong>Work Type:</strong> {internship['work_type']}</p>
             <p><strong>Schedule:</strong> {internship['schedule']}</p>
-            <p><strong>Industry:</strong> {internship['industry'])}</p>
+            <p><strong>Industry:</strong> {internship['industry']}</p>
             <p><strong>Org Type:</strong> {internship['org_type']}</p>
         </div>
         """, unsafe_allow_html=True)
