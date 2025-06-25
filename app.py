@@ -426,7 +426,7 @@ if st.button("Find Matches"):
     st.subheader("🕸️ Career Network Visualization")
     st.markdown('<div class="graph-container">', unsafe_allow_html=True)
 
-    G = Network(height="650px", width="100%", bgcolor="rgba(26, 26, 46, 0.5)", font_color="white", directed=False)
+    G = Network(height="650px", width="100%", bgcolor="rgba(26, 26, 46, 0.5)", font_color="00d4ff", directed=False)
     G.add_node("You", label="You", color="#FF3366", size=50, shape="dot", physics=False, x=0, y=0)
 
     max_radius = 400
@@ -450,7 +450,7 @@ if st.button("Find Matches"):
             norm = 1
 
         # Apply non-linear scaling for stronger visual distinction
-        adjusted_norm = norm ** 1.5
+        adjusted_norm = norm ** 0.8
         #radius = min_radius + (1 - adjusted_norm) * (max_radius - min_radius)
         radius = min_radius + adjusted_norm * (max_radius - min_radius)
         radius = radius * 1.25
@@ -466,7 +466,7 @@ if st.button("Find Matches"):
         node_args = dict(label=label, color=node_color, size=28 + score*28, x=x, y=y, physics=False, font={"multi": True, "vadjust": -20, "size": 18, "face": "monospace"})
         if internship['redirect_url']:
             node_args['url'] = internship['redirect_url']
-        G.add_node(label, color="#00d4ff", **node_args)
+        G.add_node(label, **node_args)
         G.add_edge("You", label, color="#00d4ff", value=score*5)
 
     G.set_options("""
