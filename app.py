@@ -426,7 +426,7 @@ if st.button("Find Matches"):
     st.subheader("🕸️ Career Network Visualization")
     st.markdown('<div class="graph-container">', unsafe_allow_html=True)
 
-    G = Network(height="650px", width="100%", bgcolor="rgba(26, 26, 46, 0.5)", font_color="rgba(26, 26, 46, 0.5)", directed=False)
+    G = Network(height="650px", width="100%", backgroundColor="rgba(26, 26, 46, 0.5)", font_color="rgba(26, 26, 46, 0.5)", directed=False)
     G.add_node("You", label="You", color="#FF3366", size=50, shape="dot", physics=False, x=0, y=0)
 
     max_radius = 400
@@ -461,10 +461,11 @@ if st.button("Find Matches"):
 
         title = f"{internship['company']} - {internship['title']}"
         score_str = f"Score: {score:.3f}"
-        label = f'{title}, \nscore:{score_str}'
+        label = f'{title}, \n{score_str}'
         node_color = f"rgba({int(255 - score*200)}, {int(score*200)}, 150, 0.9)"
         node_args = dict(label=label, color=node_color, size=28 + score*28, x=x, y=y, physics=False, font={"multi": True, "vadjust": -20, "size": 18, "face": "monospace"})
         if internship['redirect_url']:
+            label = f'{title}, \n{score_str}, \n🔗{internship["redirect_url"]}'
             node_args['url'] = internship['redirect_url']
         G.add_node(label, **node_args)
         G.add_edge("You", label, color="#00d4ff", value=score*5)
