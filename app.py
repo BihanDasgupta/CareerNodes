@@ -409,9 +409,9 @@ if st.button("Find Matches"):
             "salary_max": job.get("salary_max") or 0,
             "redirect_url": job.get("redirect_url", ""),
             "work_type": job.get("contract_type", "Not specified"),
-    "schedule": job.get("contract_time", "Not specified"),
-    "industry": job.get("category", {}).get("label", "Not specified"),
-    "org_type": job.get("company", {}).get("label", "Not specified")
+            "schedule": job.get("contract_time", "Not specified"),
+            "industry": job.get("category", {}).get("label", "Not specified"),
+            "org_type": job.get("company", {}).get("label", "Not specified")
 
     user_inputs = {
         "gpa": gpa, "education": education, "school": school, "major": major,
@@ -464,7 +464,8 @@ if st.button("Find Matches"):
 
         title = f"{internship['company']} - {internship['title']}"
         score_str = f"Score: {score:.3f}"
-        label = f'{title}, \n{score_str}, \n🔗{internship["redirect_url"]}'
+        url = f'<p><a href="{internship["redirect_url"]}" target="_blank">🔗{title}</a></p>'
+        label = f'{url}, \n{score_str}'
         node_color = f"rgba({int(255 - score*200)}, {int(score*200)}, 150, 0.9)"
         node_args = dict(label=label, color=node_color, size=28 + score*28, x=x, y=y, physics=False, font={"multi": True, "vadjust": -20, "size": 18, "face": "monospace"})
         if internship['redirect_url']:
@@ -498,10 +499,10 @@ if st.button("Find Matches"):
             <div class="score-display">Match Score: {score:.3f}</div>
             <p><strong>Location:</strong> {internship['location']}</p>
             <p><strong>Salary:</strong> ${internship['salary_min']} - ${internship['salary_max']}</p>
-            <p><strong>Work Type:</strong> {internship.get('work_type', 'Not listed.')}</p>
-            <p><strong>Schedule:</strong> {internship.get('schedule', 'Not listed.')}</p>
-            <p><strong>Industry:</strong> {internship.get('industry', 'Not listed.')}</p>
-            <p><strong>Org Type:</strong> {internship.get('org_type', 'Not listed.')}</p>
+            <p><strong>Work Type:</strong> {internship['work_type']}</p>
+            <p><strong>Schedule:</strong> {internship['schedule']}</p>
+            <p><strong>Industry:</strong> {internship['industry'])}</p>
+            <p><strong>Org Type:</strong> {internship['org_type']}</p>
         </div>
         """, unsafe_allow_html=True)
         
