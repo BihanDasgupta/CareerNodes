@@ -422,8 +422,10 @@ if st.button("Find Matches"):
     }
     profile_text = create_user_profile_text(user_inputs, resume_text)
     loading_placeholder = st.empty()
-    loading_placeholder.markdown('<p class="loading-text">🤖 AI Matching in Progress...</p>', unsafe_allow_html=True)
-    loading_placeholder.markdown('<p class="loading-text">(This may take 1-2 minutes)</p>', unsafe_allow_html=True)
+    loading_placeholder.markdown(
+        '<p class="loading-text">🤖 AI Matching in Progress...<br><small style="font-size:0.8em; color:#aaa;">(This may take 1-2 minutes)</small></p>',
+        unsafe_allow_html=True
+    )
     results = hybrid_analyze(profile_text, internships)
     loading_placeholder.empty()
 
@@ -436,10 +438,8 @@ if st.button("Find Matches"):
             <div class="score-display">Match Score: {score:.3f}</div>
             <p><strong>Location:</strong> {internship['location']}</p>
             <p><strong>Salary:</strong> ${internship['salary_min']} - ${internship['salary_max']}</p>
-            <!--<p><strong>Work Type:</strong> {internship['work_type']}</p>
             <p><strong>Schedule:</strong> {internship['schedule']}</p>
             <p><strong>Industry:</strong> {internship['industry']}</p>
-            <!--<p><strong>Org Type:</strong> {internship['org_type']}</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -456,8 +456,7 @@ if st.button("Find Matches"):
 
     # Create and display the network graph
     st.subheader("🕸️ Your Career Network")
-    st.subheader("(zoom in to view node details)")
-    #st.markdown('<div class="graph-container">', unsafe_allow_html=True)
+    st.markdown('<span style="font-size:0.9em; color:#aaa;">(zoom in to view node details)</span>', unsafe_allow_html=True)
 
     G = Network(height="650px", width="100%", bgcolor="rgba(26, 26, 46, 0.5)", font_color="rgba(26, 26, 46, 0.5)", directed=False)
     G.add_node("You", label="You", color="#FF3366", size=50, shape="dot", physics=False, x=0, y=0)
