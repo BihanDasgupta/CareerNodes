@@ -421,12 +421,41 @@ if st.button("Find Matches"):
         "start_date": start_date, "end_date": end_date
     }
     profile_text = create_user_profile_text(user_inputs, resume_text)
-    st.markdown('<p class="loading-text">🤖 AI Matching in Progress...</p>', unsafe_allow_html=True)
+    loading_placeholder = st.empty()
+    loading_placeholder.markdown('<p class="loading-text">🤖 AI Matching in Progress...</p>', unsafe_allow_html=True)
 
     results = hybrid_analyze(profile_text, internships)
+    loading_placeholder.empty()
+
+    st.subheader("\u2315 Top Matches:")
+    for score, internship, explanation in results:
+        # Create a job card with cyber styling
+        st.markdown(f"""
+        <div class="job-card">
+            <h4 style="color: #00d4ff; margin-bottom: 10px;">{internship['company']} - {internship['title']}</h4>
+            <div class="score-display">Match Score: {score:.3f}</div>
+            <p><strong>Location:</strong> {internship['location']}</p>
+            <p><strong>Salary:</strong> ${internship['salary_min']} - ${internship['salary_max']}</p>
+            <p><strong>Work Type:</strong> {internship['work_type']}</p>
+            <p><strong>Schedule:</strong> {internship['schedule']}</p>
+            <p><strong>Industry:</strong> {internship['industry']}</p>
+            <p><strong>Org Type:</strong> {internship['org_type']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if internship["redirect_url"]:
+            st.markdown(f'<p><a href="{internship["redirect_url"]}" target="_blank">🔗 View Job Posting</a></p>', unsafe_allow_html=True)
+    
+        with st.expander("🤖 AI Explanation"):
+            st.markdown(f'<div style="background: rgba(26, 26, 46, 0.6); padding: 15px; border-radius: 8px; border-left: 4px solid #00d4ff;">{explanation}</div>', unsafe_allow_html=True)
+
+        with st.expander("📋 Job Description"):
+            st.markdown(f'<div style="max-height:400px; overflow:auto; background: rgba(26, 26, 46, 0.6); padding: 15px; border-radius: 8px; border-left: 4px solid #00d4ff;">{internship["description"]}</div>', unsafe_allow_html=True)
+ 
+        st.markdown('<hr>', unsafe_allow_html=True)
 
     # Create and display the network graph
-    st.subheader("🕸️ Career Network Visualization")
+    st.subheader("🕸️ Your Career Network")
     #st.markdown('<div class="graph-container">', unsafe_allow_html=True)
 
     G = Network(height="650px", width="100%", bgcolor="rgba(26, 26, 46, 0.5)", font_color="rgba(26, 26, 46, 0.5)", directed=False)
@@ -464,8 +493,8 @@ if st.button("Find Matches"):
 
         title = f"{internship['company']} - {internship['title']}"
         score_str = f"Score: {score:.3f}"
-        url = f'<p><a href="{internship["redirect_url"]}" target="_blank">🔗{title}</a></p>'
-        label = f'<a href="{internship["redirect_url"]}" target="_blank" style="color:#00d4ff;text-decoration:underline;">{title}</a>\n{score_str}'
+        url = f'🔗{internship["redirect_url"]}'
+        label = f'{title}\n{score_str}\n{url}'
         node_color = f"rgba({int(255 - score*200)}, {int(score*200)}, 150, 0.9)"
         node_args = dict(label=label, color=node_color, size=28 + score*28, x=x, y=y, physics=False, font={"multi": True, "vadjust": -20, "size": 18, "face": "monospace"})
         if internship['redirect_url']:
@@ -493,31 +522,3 @@ if st.button("Find Matches"):
         components.html(source_code, height=700, width=900)
 
     st.markdown('</div>', unsafe_allow_html=True)
-
-    st.subheader("\u2315 Top Matches:")
-    for score, internship, explanation in results:
-        # Create a job card with cyber styling
-        st.markdown(f"""
-        <div class="job-card">
-            <h4 style="color: #00d4ff; margin-bottom: 10px;">{internship['company']} - {internship['title']}</h4>
-            <div class="score-display">Match Score: {score:.3f}</div>
-            <p><strong>Location:</strong> {internship['location']}</p>
-            <p><strong>Salary:</strong> ${internship['salary_min']} - ${internship['salary_max']}</p>
-            <p><strong>Work Type:</strong> {internship['work_type']}</p>
-            <p><strong>Schedule:</strong> {internship['schedule']}</p>
-            <p><strong>Industry:</strong> {internship['industry']}</p>
-            <p><strong>Org Type:</strong> {internship['org_type']}</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        if internship["redirect_url"]:
-            st.markdown(f'<p><a href="{internship["redirect_url"]}" target="_blank">🔗 View Job Posting</a></p>', unsafe_allow_html=True)
-    
-        with st.expander("🤖 AI Explanation"):
-            st.markdown(f'<div style="background: rgba(26, 26, 46, 0.6); padding: 15px; border-radius: 8px; border-left: 4px solid #00d4ff;">{explanation}</div>', unsafe_allow_html=True)
-
-        with st.expander("📋 Job Description"):
-            st.markdown(f'<div style="max-height:400px; overflow:auto; background: rgba(26, 26, 46, 0.6); padding: 15px; border-radius: 8px; border-left: 4px solid #00d4ff;">{internship["description"]}</div>', unsafe_allow_html=True)
- 
-        st.markdown('<hr>', unsafe_allow_html=True)
-
