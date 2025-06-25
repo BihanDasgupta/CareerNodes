@@ -1,30 +1,15 @@
-import streamlit as st
-import requests
-import os
-import networkx as nx
-from pyvis.network import Network
-import streamlit.components.v1 as components
-from dotenv import load_dotenv
-import PyPDF2
-import openai
-import numpy as np
-import datetime
-import html
-import math
-
 """
-
-CareerNodes 
-by Bihan Dasgupta
+CareerNodes by Bihan Dasgupta
 June 2025
 
-🔗 WEBSITE URL: https://careernodes.streamlit.app/
+WEBSITE URL: https://careernodes.streamlit.app/
 
+This is the main file for the CareerNodes website.
 """
 
 """
 
-NOTE: These are the files and command you will need to add if you want to run CareerNodes.py locally.
+NOTE: These are the files and command you will need to add if you want to run the app locally.
 
 requirements.txt:
 
@@ -58,9 +43,23 @@ You will also need to have the following dependencies installed:
 6) PyVis installed
 
 
-To run: streamlit run CareerNodes.py
+To run: streamlit run app.py
 
 """
+
+import streamlit as st
+import requests
+import os
+import networkx as nx
+from pyvis.network import Network
+import streamlit.components.v1 as components
+from dotenv import load_dotenv
+import PyPDF2
+import openai
+import numpy as np
+import datetime
+import html
+import math
 
 # Load environment variables
 load_dotenv()
