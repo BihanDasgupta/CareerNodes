@@ -364,8 +364,8 @@ EXPLANATION:
     return results
 
 # UI
-st.title("\u273e CareerNodes")
-st.subheader("\u2764 A Graphical Internship Matchmaker Powered by AI")
+st.title("✎ᝰ. CareerNodes ılıı")
+st.subheader("\u2764 A Graphical Internship Matchmaker Powered by AI ılıı")
 
 gpa = st.number_input("GPA", min_value=0.0, max_value=4.0, step=0.01, value=None)
 if gpa == 0.0: gpa = None
