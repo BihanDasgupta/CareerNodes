@@ -450,7 +450,7 @@ if st.button("Find Matches"):
             norm = 1
 
         # Apply non-linear scaling for stronger visual distinction
-        adjusted_norm = norm ** 2.5
+        adjusted_norm = norm ** 1.5
         #radius = min_radius + (1 - adjusted_norm) * (max_radius - min_radius)
         radius = min_radius + adjusted_norm * (max_radius - min_radius)
         radius = radius * 1.25
@@ -467,7 +467,7 @@ if st.button("Find Matches"):
         if internship['redirect_url']:
             node_args['url'] = internship['redirect_url']
         G.add_node(label, **node_args)
-        G.add_edge("You", label, color="#00d4ff", value=score*5)
+        G.add_edge("You", label, color="#ffffff", value=score*5)
 
     G.set_options("""
     var options = {
