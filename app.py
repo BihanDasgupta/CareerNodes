@@ -407,8 +407,11 @@ if st.button("Find Matches"):
             "location": job.get("location", {}).get("display_name", "Unknown Location"),
             "salary_min": job.get("salary_min") or 0,
             "salary_max": job.get("salary_max") or 0,
-            "redirect_url": job.get("redirect_url", "")
-        })
+            "redirect_url": job.get("redirect_url", ""),
+            "work_type": job.get("contract_type", "Not specified"),
+    "schedule": job.get("contract_time", "Not specified"),
+    "industry": job.get("category", {}).get("label", "Not specified"),
+    "org_type": job.get("company", {}).get("label", "Not specified")
 
     user_inputs = {
         "gpa": gpa, "education": education, "school": school, "major": major,
@@ -495,10 +498,10 @@ if st.button("Find Matches"):
             <div class="score-display">Match Score: {score:.3f}</div>
             <p><strong>Location:</strong> {internship['location']}</p>
             <p><strong>Salary:</strong> ${internship['salary_min']} - ${internship['salary_max']}</p>
-            <p><strong>Work Type:</strong> {type_preference}</p>
-            <p><strong>Schedule:</strong> {schedule_preference}</p>
-            <p><strong>Industry:</strong> {', '.join(industry_preference)}</p>
-            <p><strong>Org Type:</strong> {', '.join(org_type_preference)}</p>
+            <p><strong>Work Type:</strong> {internship.get('work_type', 'Not listed.')}</p>
+            <p><strong>Schedule:</strong> {internship.get('schedule', 'Not listed.')}</p>
+            <p><strong>Industry:</strong> {internship.get('industry', 'Not listed.')}</p>
+            <p><strong>Org Type:</strong> {internship.get('org_type', 'Not listed.')}</p>
         </div>
         """, unsafe_allow_html=True)
         
