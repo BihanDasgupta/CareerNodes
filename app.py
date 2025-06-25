@@ -450,7 +450,7 @@ if st.button("Find Matches"):
             norm = 1
 
         # Apply non-linear scaling for stronger visual distinction
-        adjusted_norm = norm ** 1.5
+        adjusted_norm = norm ** 1.25
         #radius = min_radius + (1 - adjusted_norm) * (max_radius - min_radius)
         radius = min_radius + adjusted_norm * (max_radius - min_radius)
         radius = radius * 1.25
